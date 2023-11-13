@@ -3,9 +3,15 @@ import java.net.*;
 
 public class GestioneClient implements Runnable {
     private Socket clientSocket;
+    private Socket opponentSocket;
 
-    public GestioneClient(Socket socket, ServerSocket serverSocket) {
+    public GestioneClient(Socket socket) {
         this.clientSocket = socket;
+    }
+
+    public void SetOpponentSocket(Socket opponent)
+    {
+        this.opponentSocket = opponent;
     }
 
     public void run() {
@@ -14,6 +20,8 @@ public class GestioneClient implements Runnable {
 
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
+            // dati da inviare all'avversario nel caso la mossa è corretta
+            DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
 
             String clientMessage;
             while ((clientMessage = inFromClient.readLine()) != null) {
@@ -45,8 +53,10 @@ public class GestioneClient implements Runnable {
                 }   
 
                 serverResponse = "Dato ricevuto correttamente: " + clientMessage + "\n";
-                // Invia la conferma al client
+                // invia la conferma al client che ha fatto la mossa
                 outToClient.writeBytes(serverResponse);
+                // invio i dati all'avversario se la mossa è corretta
+                outOpponent.writeBytes(serverResponse);
             }
 
             // Se il client chiude la connessione, esci dal loop
