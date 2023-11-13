@@ -1,32 +1,31 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class Server {
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(666)) {
-            Socket savedClient = null;
-            while (true) {
+            // mi salvo il client precedente e anche la socket
+            HashMap<Socket, GestioneClient> savedPlayer = new HashMap<Socket, GestioneClient>();
+            
+            // il server accetta solamente due giocatori (aventi colori diversi)
+            while (savedPlayer.size() < 2) {
+                // la prima volta accetto il client
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Connessione accettata da: " + clientSocket.getInetAddress());
 
-                if (savedClient != null)
-                {
-
-                    // Creazione di un nuovo thread per gestire la connessione
-                    GestioneClient g1 = new GestioneClient(clientSocket);
-                    g1.SetOpponentSocket(savedClient);
-                    Thread clientThread = new Thread(g1);
-                    clientThread.start();
-                    savedClient = null;
-
-                    break;
-                }
-
-                // Creazione di un nuovo thread per gestire la connessione
-                Thread clientThread = new Thread(new GestioneClient(clientSocket));
-                savedClient = clientSocket;
-                clientThread.start();
+                savedPlayer.put(clientSocket, new GestioneClient(clientSocket));
             }
+
+            // GestioneClient g1 = savedPlayer.keySet();
+
+            // per ogni giocatore connesso avvio il proprio thread
+            // for (GestioneClient g : savedPlayer) {
+            //     // avvio il thread
+            //     Thread t = new Thread(g);
+            //     t.start();
+            // }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

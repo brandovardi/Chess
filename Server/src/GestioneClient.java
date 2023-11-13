@@ -5,7 +5,8 @@ public class GestioneClient implements Runnable {
     private Socket clientSocket;
     private Socket opponentSocket;
 
-    public GestioneClient(Socket socket) {
+    public GestioneClient(Socket socket)
+    {
         this.clientSocket = socket;
     }
 
@@ -14,14 +15,21 @@ public class GestioneClient implements Runnable {
         this.opponentSocket = opponent;
     }
 
-    public void run() {
+    public void run()
+    {
+        boolean first = true;
         try {
             Chess game = new Chess(null);
 
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
-            // dati da inviare all'avversario nel caso la mossa è corretta
-            DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
+
+            if (first)
+            {
+                // la prima volta invio al client che è connesso un'altro utente per poter iniziare la partita
+                String risposta = "ClientConnected";
+                outToClient.writeBytes(risposta);
+            }
 
             String clientMessage;
             while ((clientMessage = inFromClient.readLine()) != null) {
@@ -52,9 +60,13 @@ public class GestioneClient implements Runnable {
                     }
                 }   
 
-                serverResponse = "Dato ricevuto correttamente: " + clientMessage + "\n";
+                serverResponse = "MoveOk";
                 // invia la conferma al client che ha fatto la mossa
                 outToClient.writeBytes(serverResponse);
+
+
+                // dati da inviare all'avversario nel caso la mossa è corretta
+                DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
                 // invio i dati all'avversario se la mossa è corretta
                 outOpponent.writeBytes(serverResponse);
             }
