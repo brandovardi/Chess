@@ -16,15 +16,27 @@ public class Server {
 
                 savedPlayer.put(clientSocket, new GestioneClient(clientSocket));
             }
-
-            // GestioneClient g1 = savedPlayer.keySet();
-
+            boolean count = false;
             // per ogni giocatore connesso avvio il proprio thread
-            // for (GestioneClient g : savedPlayer) {
-            //     // avvio il thread
-            //     Thread t = new Thread(g);
-            //     t.start();
-            // }
+            for (GestioneClient g : savedPlayer.values()) {
+                // scorro i due giocatori e gli assegno il proprio avversario (indicandogli la socket)
+                for (Socket sock : savedPlayer.keySet()) {
+                    if (!count)
+                    {
+                        // siccome so che ci sono solamente due giocatori, al primo ciclo cambio il valore della variabile
+                        // per il ciclo successivo
+                        count = true;
+                        continue;
+                    }
+                    else
+                    {
+                        g.SetOpponentSocket(sock);
+                    }
+                }
+                // avvio i thread per entrambi i giocatori
+                Thread t = new Thread(g);
+                t.start();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
