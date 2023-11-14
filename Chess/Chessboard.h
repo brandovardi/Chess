@@ -37,7 +37,7 @@ private:
 	// variabili per la inviare dati al server
 	string lastMove;
 
-	// metodi che mi accorciano il codice per non renderlo troppo lungo (le metto come private perché non sono
+	// metodi che mi accorciano il codice per non renderlo troppo lungo (le metto come private perchÃ© non sono
 	// delle regole effettive del gioco
 	bool verificaPosizioneKingSM(bool condition, int r_, int c_, Piece pezzoMangiato);
 	bool posConsentitaSM(Piece& pezzoMangiato);
@@ -50,7 +50,7 @@ public:
 	Chessboard(string firstColor = "white");
 	void DisegnaCoordinate();
 	void DisegnaPezzi();
-	bool PezzoCliccato(int _mX, int _mY);
+	bool PezzoCliccato(int _mX, int _mY, bool trigger = false /* questo parametro serve per controllare se sono io a muovere o lavversario tramite il server*/);
 	void DisegnaInMovimento(int _moveX, int _moveY, bool drag = false);
 	bool ControllaPezzi(int _r, int _c, Piece& pMoved);
 	void Arrocca(int r1, int c1);
@@ -71,7 +71,7 @@ public:
 	bool performEPforCM(Piece pedina, int r_, int c_, bool parteBassa);
 	bool EnPassant(int r, int c, string color);
 	string getLastMove() { return this->lastMove; }
-	// questo metodo lo lascio pubblico perché può tornare utile
+	// questo metodo lo lascio pubblico perchÃ© puÃ² tornare utile
 	string ToLowerStr(string& str);
 
 	~Chessboard() {}

@@ -30,11 +30,7 @@ bool ClientTCP::CreateSocketConnectServer()
     // Mi connetto al server tramite la socket (mando una richiesta, sperando il server la accetti)
     iResult = connect(clientSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
     if (iResult == SOCKET_ERROR)
-    {
-        closesocket(clientSocket);
-        WSACleanup();
         return false;
-    }
 
     return true;
 }
@@ -49,11 +45,7 @@ bool ClientTCP::Send(string mess)
     // invio il messaggio al server
     iResult = send(clientSocket, message, (int)strlen(message), 0);
     if (iResult == SOCKET_ERROR)
-    {
-        closesocket(clientSocket);
-        WSACleanup();
         return false;
-    }
 
     return true;
 }
@@ -61,12 +53,12 @@ bool ClientTCP::Send(string mess)
 string ClientTCP::Recieve()
 {
     // attendo un po' altrimenti il server non fa in tempo a mandarmi tutta la risposta ma ricevo solo gli ultimi bytes
-    Sleep(100);
+    Sleep(150);
     char buffer[BUFLEN] = {};
-    recv(clientSocket, buffer, sizeof(buffer), 0);
+    iResult = recv(clientSocket, buffer, sizeof(buffer), 0);
     string risposta = buffer;
     // rimuovo tutti i caratteri nulli alla fine del messaggio
-    risposta.erase(risposta.find_last_of(" \r\n\t") + 1);
+    //risposta.erase(risposta.find_last_of(" \r\n\t") + 1);
 
     if (iResult > 0)
     {

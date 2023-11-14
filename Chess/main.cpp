@@ -9,12 +9,27 @@
 * https://github.com/npiegdon/immediate2d
 */
 
+#include <sstream>
+#include <vector>
+
 #include "Chessboard.h"
 #include "ClientTCP.h"
 
 string controllaSceltaColore(int mx, int my);
 void drawSquare(int mx, int my);
 string chooseColor();
+
+vector<string> split(const string& s, char delimiter) {
+	vector<string> tokens;
+	istringstream tokenStream(s);
+	string token;
+
+	while (getline(tokenStream, token, delimiter)) {
+		tokens.push_back(token);
+	}
+
+	return tokens;
+}
 
 // mancano i controlli per lo scacco matto (il controllo per lo scacco normale c'è), lo stallo
 int main()
@@ -31,9 +46,21 @@ int main()
 
 	Clear(White);
 	if (!server.CreateSocketConnectServer())
+	{
 		DrawString(Width / 2, 0, "Errore durante la\nconnessione al server", "Century", 20, Black, true);
-	Present();
-	Wait(2000);
+		Present();
+		Wait(3000);
+	}
+	else
+	{
+		// finchè il server non trova un'altro giocatore con un colore diverso dal mio non inizia la partita
+		DrawString(Width / 2, 0, "Attendere...", "Century", 20, Black, true);
+		Present();
+		// invio al server il colore che ho selezionato
+		server.Send(colore);
+		// attendo quindi la risposta del server per poter iniziare
+		while (!server.Recieve()._Equal("start")) {} // secondo
+	}
 
 	string vincitore = "";
 	// genero il suono per l'inizio della partita
@@ -55,7 +82,7 @@ int main()
 		{
 			mX = MouseX();
 			mY = MouseY();
-			if (gameBoard.PezzoCliccato(mX, mY))
+			if (gameBoard.PezzoCliccato(mX, mY, true))
 			{
 				while (LeftMousePressed())
 				{
@@ -86,7 +113,15 @@ int main()
 				{
 					// richiamo la funzione placePiece() passandogli le coordinate del mouse, per "piazzare" la pedina
 					if (gameBoard.PosizionaPezzo(MouseX(), MouseY()))
+					{
 						server.Send(gameBoard.getLastMove());
+						string x = server.Recieve();
+						vector<string> str = split(x, ';');
+						if (str.at(0) == "OK")
+						{
+
+						}
+					}
 				}
 				else
 					posiziona = true;

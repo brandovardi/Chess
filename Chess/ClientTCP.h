@@ -8,7 +8,7 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
-#define BUFLEN 512 // lunghezza del messaggio
+#define BUFLEN 1024 // lunghezza del messaggio
 #define PORT 666 // porta del server
 #define SERVER "127.0.0.1" // indirizzo ip del server
 

@@ -120,25 +120,25 @@ void Chessboard::DisegnaPezzi()
 		}
 	}
 }
-// partendo dalle coordinate del mouse salvate dell'utente controllo se è stato selezionato un pezzo
-bool Chessboard::PezzoCliccato(int mx, int my)
+// partendo dalle coordinate del mouse salvate dell'utente controllo se Ã¨ stato selezionato un pezzo
+bool Chessboard::PezzoCliccato(int mx, int my, bool trigger)
 {
-	Piece pieceTmp = Piece(); // istanzio un pezzo tegmporaneo per rendere il codice di seguito più leggibile
-	// se esiste già un pezzo in movimento allora esco dal metodo
+	Piece pieceTmp = Piece(); // istanzio un pezzo tegmporaneo per rendere il codice di seguito piÃ¹ leggibile
+	// se esiste giÃ  un pezzo in movimento allora esco dal metodo
 	if (pezzoMosso.Exist())
 		return true;
 	// controllo se le coordinate sono all'interno della scacchiera
 	if (mx <= CELL_WIDTH * COLUMN && my <= CELL_HEIGHT * ROW && mx >= X_START_CB && my >= Y_START_CB) {
 		// vado ad ottenere la riga e la colonna della scacchiera utilizzando le coordinate x e y
 		fromXY2RowCol(mx, my, riga, col);
-		pieceTmp = pezzi[riga][col]; // mi salvo il pezzo che è stato selezionato per una lettura migliore
+		pieceTmp = pezzi[riga][col]; // mi salvo il pezzo che Ã¨ stato selezionato per una lettura migliore
 		/*
 		* questo controllo serve per verificare che il pezzo cliccato esista effettivamente, e controllo anche
-		* se al turno del bianco è stato selezionato un pezzo bianco o vicerversa per il nero
+		* se al turno del bianco Ã¨ stato selezionato un pezzo bianco o vicerversa per il nero
 		*/
-		if (pieceTmp.Exist() && (whiteToMove && pieceTmp.Is("white") || !whiteToMove && pieceTmp.Is("black"))
-			/*&& (pieceTmp.Is(colori[0]))*/) {
-			// rimuovo il pezzo da dove è stato prezo
+		if (pieceTmp.Exist() && ((whiteToMove && pieceTmp.Is("white") && (colori[0]._Equal("white_")) && trigger)
+			|| (!whiteToMove && pieceTmp.Is("black") && (colori[0]._Equal("black_") && trigger)))) {
+			// rimuovo il pezzo da dove Ã¨ stato prezo
 			pezzi[riga][col] = Piece(riga, col);
 			// assegno allora al "pezzo in movimento" il pezzo cliccato
 			pezzoMosso = pieceTmp;
@@ -150,7 +150,7 @@ bool Chessboard::PezzoCliccato(int mx, int my)
 // questo metodo serve per disegnare il pezzo in movimento, seguendo il cursore del mouse
 void Chessboard::DisegnaInMovimento(int mx, int my, bool drag)
 {
-	// con questo thread disegno tutte le possibili mosse che può fare il pezzo in movimento
+	// con questo thread disegno tutte le possibili mosse che puÃ² fare il pezzo in movimento
 	thread t(&Chessboard::DisegnaMosseDisponibili, this);
 	if (!drag)
 	{
@@ -175,38 +175,38 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 	// se ha mosso il pezzo su un'altro con lo stesso colore esco subito dal metodo
 	if (StessoColore(pezzi[rDest][cDest], pMoved))
 		return true;
-	// controllo la torre e la regina perché hanno delle mosse simili
+	// controllo la torre e la regina perchÃ© hanno delle mosse simili
 	if (pMoved.Is("rook") || pMoved.Is("queen"))
 	{
-		// se il pezzo non è stato mosso dalla sua posizione originale
+		// se il pezzo non Ã¨ stato mosso dalla sua posizione originale
 		if (rDest == pMoved.Riga() && cDest == pMoved.Col())
 			return true;
-		// controllo solamente per la torre se è stata spostata in diagonale
+		// controllo solamente per la torre se Ã¨ stata spostata in diagonale
 		if (pMoved.Is("rook"))
 			// semplicemente verificando se sia la colonna che la riga sono diverse
 			if (rDest != pMoved.Riga() && cDest != pMoved.Col())
 				return true;
-		// controllo se la torre si è mossa sulla stessa riga
+		// controllo se la torre si Ã¨ mossa sulla stessa riga
 		if (rDest == pMoved.Riga() && cDest != pMoved.Col())
 		{
-			// controllo se si è spostata a destra
+			// controllo se si Ã¨ spostata a destra
 			if (cDest > pMoved.Col()) {
 				// controllo che non ci siano pezzi di qualunque colore sul "percorso" della torre
 				for (int i = pMoved.Col() + 1; i < cDest; i++)
 					if (pezzi[rDest][i].Exist())
 						return true;
 			}
-			// controllo se si è spostata a sinistra
+			// controllo se si Ã¨ spostata a sinistra
 			else if (cDest < pMoved.Col())
 				// controllo che non ci siano pezzi di qualunque colore sul "percorso" della torre
 				for (int i = pMoved.Col() - 1; i > cDest; i--)
 					if (pezzi[rDest][i].Exist())
 						return true;
 		}
-		// controllo se la torre si è mossa sulla stessa colonna
+		// controllo se la torre si Ã¨ mossa sulla stessa colonna
 		else if (cDest == pMoved.Col() && rDest != pMoved.Riga())
 		{
-			// controllo se si è spostata verso il basso
+			// controllo se si Ã¨ spostata verso il basso
 			if (rDest > pMoved.Riga())
 			{
 				// controllo che non ci siano pezzi di qualunque colore sul "percorso" della torre
@@ -214,7 +214,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 					if (pezzi[i][cDest].Exist())
 						return true;
 			}
-			// controllo se si è spostata verso l'alto
+			// controllo se si Ã¨ spostata verso l'alto
 			else if (rDest < pMoved.Riga())
 				// controllo che non ci siano pezzi di qualunque colore sul "percorso" della torre
 				for (int i = pMoved.Riga() - 1; i > rDest; i--)
@@ -222,20 +222,20 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 						return true;
 		}
 	}
-	// controllo l'alfiere e la regina perché hanno delle mosse simili
+	// controllo l'alfiere e la regina perchÃ© hanno delle mosse simili
 	if (pMoved.Is("bishop") || pMoved.Is("queen"))
 	{
-		// controllo se l'alfiere è stato mosso in verticalo o orizzontale
+		// controllo se l'alfiere Ã¨ stato mosso in verticalo o orizzontale
 		if (pMoved.Is("bishop"))
 			// basta controllare se la riga o la colonna sono rimaste uguali
 			if (rDest == pMoved.Riga() || cDest == pMoved.Col())
 				return true;
 		// prima di controllare le diagonali verifico che effettivamente si sia spostato in diagonale
-		// perché controllare che la riga o che la colonna non siano uguali non basta
+		// perchÃ© controllare che la riga o che la colonna non siano uguali non basta
 		if (pMoved.Riga() != rDest && pMoved.Col() != cDest)
 		{
 			// quindi prima controllo in che posizione risulta essersi spostato l'alfiere o la regina
-			// (controllo se si è spostato in altro a destra o in basso a sinistra)
+			// (controllo se si Ã¨ spostato in altro a destra o in basso a sinistra)
 			if (rDest < pMoved.Riga() && cDest > pMoved.Col() || rDest > pMoved.Riga() && cDest < pMoved.Col())
 			{
 				// e con un piccolo calcolo controllo che si sia effettivamente mosso sulla diagonale
@@ -243,11 +243,11 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 				if (((rDest - pMoved.Riga()) * -1) != (cDest - pMoved.Col()))
 					return true;
 			}
-			// altrimenti controllo se si è mosso in alto a sinistra o in basso a destra, sempre seguendo la diagonale
+			// altrimenti controllo se si Ã¨ mosso in alto a sinistra o in basso a destra, sempre seguendo la diagonale
 			else if (rDest - pMoved.Riga() != cDest - pMoved.Col())
 				return true;
 		}
-		// arrivato qua posso controllare se il "percorso" dell'alfiere o della regina non è ostacolato da nessun pezzo
+		// arrivato qua posso controllare se il "percorso" dell'alfiere o della regina non Ã¨ ostacolato da nessun pezzo
 		if (rDest > pMoved.Riga() && cDest > pMoved.Col())
 		{
 			// controllo la diagonale che si muove in basso a destra
@@ -291,26 +291,26 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 		bool _castling = false;
 		if (!pMoved.Arrocco())
 		{
-			// suddivido i controlli andando controllare se si è mosso sulla stessa riga
+			// suddivido i controlli andando controllare se si Ã¨ mosso sulla stessa riga
 			// per controllare separatamente l'arrocco
 			if (rDest == pMoved.Riga())
 			{
 				/*
-				* Devo sostituire il re sulla scacchiera solo in questo caso (perché potrebbe aver arroccato)
-				* perché quando muovo un pezzo lo rimuovo dalla scacchiera e se devo controllare se il re è sotto scacco
-				* quando si muove, non posso farlo, ovviamente, perché non posso trovare la sua posizione di partenza.
-				* Quindi sostituisco il re per verificare se non è sotto scacco prima di fare l'arrocco."
+				* Devo sostituire il re sulla scacchiera solo in questo caso (perchÃ© potrebbe aver arroccato)
+				* perchÃ© quando muovo un pezzo lo rimuovo dalla scacchiera e se devo controllare se il re Ã¨ sotto scacco
+				* quando si muove, non posso farlo, ovviamente, perchÃ© non posso trovare la sua posizione di partenza.
+				* Quindi sostituisco il re per verificare se non Ã¨ sotto scacco prima di fare l'arrocco."
 				*/
 				pezzi[pMoved.Riga()][pMoved.Col()] = pMoved;
 				if (!ControllaScacco())
 				{
-					// innanzitutto controllo se è la prima mossa del re (altrimenti non può arroccare)
-					// e se sul percorso dell'arrocco non c'è la possibilità di scacco
+					// innanzitutto controllo se Ã¨ la prima mossa del re (altrimenti non puÃ² arroccare)
+					// e se sul percorso dell'arrocco non c'Ã¨ la possibilitÃ  di scacco
 					if (!pMoved.PrimaMossa() && ArroccoSenzaScacco(pMoved, cDest))
 					{
 						if (colori[0]._Equal("white_"))
 						{
-							// controllo se si è mosso verso destra, verificando che anche per la torre sia la prima mossa
+							// controllo se si Ã¨ mosso verso destra, verificando che anche per la torre sia la prima mossa
 							// e che il "percorso" sia libero
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 1].Exist() && !pezzi[rDest][cDest + 1].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
@@ -338,7 +338,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 						}
 						else if (colori[0]._Equal("black_"))
 						{
-							// controllo se si è mosso verso destra, verificando che anche per la torre sia la prima mossa
+							// controllo se si Ã¨ mosso verso destra, verificando che anche per la torre sia la prima mossa
 							// e che il "percorso" sia libero
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 2].Exist() && !pezzi[rDest][cDest + 2].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
@@ -393,7 +393,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 		bool parteAlta = (pMoved.Is("black") && colori[1]._Equal("black_"))
 			|| (pMoved.Is("white") && colori[1]._Equal("white_"));
 
-		// mi salvo la condizione per sapere se è possibile effettuare l'enPassant in questo turno
+		// mi salvo la condizione per sapere se Ã¨ possibile effettuare l'enPassant in questo turno
 		bool controlEnPassant = (enPassantTmp && rDest == (pMoved.Riga() + (parteBassa ? -1 : 1))
 			&& (cDest == pMoved.Col() - 1 || cDest == pMoved.Col() + 1)
 			&& pezzi[rDest + (parteBassa ? 1 : -1)][cDest].Is((parteBassa ? colori[1] : colori[0]) + "pawn")
@@ -401,14 +401,14 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 
 		// controllo tutte le mosse delle pedine
 		if (!((rDest == pMoved.Riga() + (parteBassa ? -1 : 1) && cDest == pMoved.Col() && !pezzi[rDest][cDest].Exist())
-			// la pedina può andare avanti di due caselle solamente se è la sua prima mossa e non c'è nessuno
+			// la pedina puÃ² andare avanti di due caselle solamente se Ã¨ la sua prima mossa e non c'Ã¨ nessuno
 			// sulla casella di destinazione
 			|| (rDest == pMoved.Riga() + (parteBassa ? -2 : 2) && cDest == pMoved.Col() && !pezzi[rDest][cDest].Exist()
 				&& !pezzi[rDest + (parteBassa ? 1 : -1)][cDest].Exist() && !pMoved.PrimaMossa())
-			// la pedina può mangiare solamente in diagonale e solamente i pezzi avversari
+			// la pedina puÃ² mangiare solamente in diagonale e solamente i pezzi avversari
 			|| (rDest == pMoved.Riga() + (parteBassa ? -1 : 1) && (cDest == pMoved.Col() + 1 || cDest == pMoved.Col() - 1)
 				&& pezzi[rDest][cDest].Is((parteBassa ? colori[1] : colori[0])))
-			// se possibile la pedina può effettuare l'enPassant
+			// se possibile la pedina puÃ² effettuare l'enPassant
 			|| (controlEnPassant))) {
 			return true;
 		}
@@ -423,7 +423,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 			enPassantTmp = true;
 			pMoved.setEnPassant(true);
 		}
-		// controllo se può fare l'en passant
+		// controllo se puÃ² fare l'en passant
 		if (controlEnPassant)
 			return EnPassant(rDest, cDest, (parteBassa ? colori[0] : colori[1]));
 	}
@@ -442,20 +442,20 @@ bool Chessboard::EnPassant(int r, int c, string color)
 	pezzi[rTmp][c] = Piece(rTmp, c);
 	// prima di continuare controllo che non sia presente uno scacco
 	if (ControllaScacco()) {
-		// se il re è arrivato sotto scacco allora rimetto tutto a posto come prima
+		// se il re Ã¨ arrivato sotto scacco allora rimetto tutto a posto come prima
 		pezzi[r][c] = Piece(r, c);
 		// poi tolgo la pedina nera dal campo
 		pezzi[rTmp][c] = pawnTmp;
 		enPassantTmp = false;
 		twoFAenPass = false;
-		// ritorno true perché per risparmiare istruzioni l'ho utilizzata come ritorno per il metodo "ControllaPezzi"
+		// ritorno true perchÃ© per risparmiare istruzioni l'ho utilizzata come ritorno per il metodo "ControllaPezzi"
 		return true;
 	}
 	twoFAenPass = false;
 	enPassantTmp = false;
 	return false;
 }
-// vado a controllare, secondo le regole  degli scacchi, se il percorso per effettuare l'arrocco non è "affetto da scacco"
+// vado a controllare, secondo le regole  degli scacchi, se il percorso per effettuare l'arrocco non Ã¨ "affetto da scacco"
 bool Chessboard::ArroccoSenzaScacco(Piece king, int destinationCol)
 {
 	// rimuovo quindi temporaneamente il re dalla sua posizione per poi riposizionarlo sulla cella adiacente
@@ -534,7 +534,7 @@ void Chessboard::Arrocca(int rT, int cT) // rigaTorre, colonnaTorre
 	pezzoMosso.setArrocco(true);
 	arroccoTmp = true;
 }
-// questo metodo controlla se il re è sotto scacco nella posizione dove è stato posizionato dal giocatore
+// questo metodo controlla se il re Ã¨ sotto scacco nella posizione dove Ã¨ stato posizionato dal giocatore
 bool Chessboard::ReSottoScacco(Piece king)
 {
 	Piece piece = Piece();
@@ -768,10 +768,10 @@ bool Chessboard::ReSottoScacco(Piece king)
 
 	return false;
 }
-// questo metodo controlla se sulla scacchiera è presente uno scacco
+// questo metodo controlla se sulla scacchiera Ã¨ presente uno scacco
 bool Chessboard::ControllaScacco()
 {
-	// vado quindi a cercare i due re e controllare se uno dei due è sotto scacco
+	// vado quindi a cercare i due re e controllare se uno dei due Ã¨ sotto scacco
 	for (int i = 0; i < ROW; i++)
 	{
 		for (int j = 0; j < COLUMN; j++)
@@ -795,12 +795,12 @@ bool Chessboard::ControllaScacco()
 	}
 	return false;
 }
-// controllo se c'è uno scacco matto (quando il re è sotto scacco e non si può salvare in nessun modo)
+// controllo se c'Ã¨ uno scacco matto (quando il re Ã¨ sotto scacco e non si puÃ² salvare in nessun modo)
 bool Chessboard::ScaccoMatto()
 {
 	return ControllaScacco() && verificaMosseSM();
 }
-// verifico se è presente una posizione di stallo
+// verifico se Ã¨ presente una posizione di stallo
 bool Chessboard::Stallo()
 {
 	return !ControllaScacco() && verificaMosseSM(true);
@@ -823,15 +823,15 @@ bool Chessboard::verificaMosseSM(bool stallo)
 			}
 		}
 	}
-	// se arrivo qua significa che non c'è ne scacco matto ne uno stallo quindi resetto il reSottoScacco
+	// se arrivo qua significa che non c'Ã¨ ne scacco matto ne uno stallo quindi resetto il reSottoScacco
 	reSottoScacco = Piece();
 	return false;
 }
 // non sapevo che nome dargli ma l'ho creata per il semplice fatto che se devo controllare lo scacco matto
-// è più semplice perché prima controllo se c'è lo scacco e se è vero allora mi ritorna un re sotto scacco
-// mentre per lo stallo non ci deve essere un re sotto scacco quindi il re sotto scacco è nullo
-// e devo cercarlo per verificare lo stallo, il problema è che devo controllare tutti e due i re per vedere se
-// c'è nè uno in posizione di stallo
+// Ã¨ piÃ¹ semplice perchÃ© prima controllo se c'Ã¨ lo scacco e se Ã¨ vero allora mi ritorna un re sotto scacco
+// mentre per lo stallo non ci deve essere un re sotto scacco quindi il re sotto scacco Ã¨ nullo
+// e devo cercarlo per verificare lo stallo, il problema Ã¨ che devo controllare tutti e due i re per vedere se
+// c'Ã¨ nÃ¨ uno in posizione di stallo
 bool Chessboard::MateFunction(Piece re)
 {
 	if (re.Exist() && !reSottoScacco.Exist())
@@ -851,7 +851,7 @@ bool Chessboard::MateFunction(Piece re)
 	int positions[][2] = {
 		{ -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }
 	};
-	// successivamente controllo se il re si può salvare in qualche modo muovendosi
+	// successivamente controllo se il re si puÃ² salvare in qualche modo muovendosi
 	// o mangiando eventualmente un pezzo
 	for (int i = 0; i < nCondition; i++)
 	{
@@ -859,14 +859,14 @@ bool Chessboard::MateFunction(Piece re)
 			reSottoScacco.Col() + positions[i][1], pezzoMangiato))
 			return false;
 	}
-	// poi controllose c'è un pezzo che può "salvare" il re dallo scacco
+	// poi controllose c'Ã¨ un pezzo che puÃ² "salvare" il re dallo scacco
 	// sfortunatamente mi serve ciclare tutta la matrice, poi cercare tutti i pezzi dello stesso colore del
-	// re sotto scacco e controllare se quel pezzo spostandolo può salvare il re dallo scacco :)
+	// re sotto scacco e controllare se quel pezzo spostandolo puÃ² salvare il re dallo scacco :)
 	for (int i = 0; i < ROW; i++)
 	{
 		for (int j = 0; j < COLUMN; j++)
 		{
-			// quindi ora controllo se il pezzo corrente è dello stesso colore del re sotto scacco
+			// quindi ora controllo se il pezzo corrente Ã¨ dello stesso colore del re sotto scacco
 			if (StessoColore(reSottoScacco, pezzi[i][j]))
 			{
 				// controllo le possibili posizioni delle torri (e anche la regina)
@@ -882,7 +882,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], i, k))
 									return false;
 							}
@@ -902,7 +902,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], i, k))
 									return false;
 							}
@@ -922,7 +922,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], k, j))
 									return false;
 							}
@@ -942,7 +942,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], k, j))
 									return false;
 							}
@@ -966,7 +966,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], _r, _c))
 									return false;
 							}
@@ -985,7 +985,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], _r, _c))
 									return false;
 							}
@@ -1004,7 +1004,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], _r, _c))
 									return false;
 							}
@@ -1023,7 +1023,7 @@ bool Chessboard::MateFunction(Piece re)
 								break;
 							else
 							{
-								// ritorna true se spostando il pezzo non c'è più scacco
+								// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 								if (SpostaPezzoSM(pezzi[i][j], _r, _c))
 									return false;
 							}
@@ -1042,7 +1042,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i + 2][j + 1], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + 2), (j + 1)))
 								return false;
 					}
@@ -1051,7 +1051,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i + 2][j - 1], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + 2), (j - 1)))
 								return false;
 					}
@@ -1060,7 +1060,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i - 2][j - 1], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i - 2), (j - 1)))
 								return false;
 					}
@@ -1069,7 +1069,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i - 2][j + 1], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i - 2), (j + 1)))
 								return false;
 					}
@@ -1078,7 +1078,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i + 1][j + 2], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + 1), (j + 2)))
 								return false;
 					}
@@ -1087,7 +1087,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i + 1][j - 2], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + 1), (j - 2)))
 								return false;
 					}
@@ -1096,7 +1096,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i - 1][j - 2], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i - 1), (j - 2)))
 								return false;
 					}
@@ -1105,7 +1105,7 @@ bool Chessboard::MateFunction(Piece re)
 					{
 						// se trovo un pezzo dello stesso colore allora esco e procedo con i controlli
 						if (!StessoColore(pezzi[i - 1][j + 2], pezzi[i][j]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i - 1), (j + 2)))
 								return false;
 					}
@@ -1121,38 +1121,38 @@ bool Chessboard::MateFunction(Piece re)
 					// muovo la pedina in avanti di due
 					if (!pezzi[i][j].PrimaMossa() && ((parteBassa && i == ROW - 2) || (parteAlta && i == 1)))
 					{
-						// se c'è un pezzo non posso muovere la pedina
+						// se c'Ã¨ un pezzo non posso muovere la pedina
 						if (!pezzi[i + (parteBassa ? -2 : 2)][j].Exist())
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -2 : 2)), j))
 								return false;
 					}
 					// controllo che si possa spostare avanti ancora di almeno una casella
 					if ((parteBassa && i >= 1) || (parteAlta && i < ROW - 1))
 					{
-						// se c'è un pezzo non posso muovere la pedina
+						// se c'Ã¨ un pezzo non posso muovere la pedina
 						if (!pezzi[i + (parteBassa ? -1 : 1)][j].Exist())
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -1 : 1)), j))
 								return false;
 					}
-					// controllo se può eventualmente mangiare a destra
+					// controllo se puÃ² eventualmente mangiare a destra
 					if ((parteBassa && i >= 1 && j < COLUMN - 1) || (parteBassa && i < ROW - 1 && j < COLUMN - 1))
 					{
-						// se c'è una pedina del colore opposto allora posso mangiare
+						// se c'Ã¨ una pedina del colore opposto allora posso mangiare
 						if (pezzi[i + (parteBassa ? -1 : 1)][j + 1].Exist()
 							&& !StessoColore(pezzi[i][j], pezzi[i + (parteBassa ? -1 : 1)][j + 1]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -1 : 1)), (j + 1)))
 								return false;
 					}
-					// controllo se può eventualmente mangiare a sinistra
+					// controllo se puÃ² eventualmente mangiare a sinistra
 					if ((parteBassa && i >= 1 && j >= 1) || (parteAlta && i < ROW - 1 && j >= 1))
 					{
-						// se c'è una pedina del colore opposto allora posso mangiare
+						// se c'Ã¨ una pedina del colore opposto allora posso mangiare
 						if (pezzi[i + (parteBassa ? -1 : 1)][j - 1].Exist()
 							&& !StessoColore(pezzi[i][j], pezzi[i + (parteBassa ? -1 : 1)][j - 1]))
-							// ritorna true se spostando il pezzo non c'è più scacco
+							// ritorna true se spostando il pezzo non c'Ã¨ piÃ¹ scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -1 : 1)), (j - 1)))
 								return false;
 					}
@@ -1175,12 +1175,12 @@ bool Chessboard::MateFunction(Piece re)
 	}
 	if (re.Exist())
 		reSottoScacco = Piece();
-	// se arriva alla fine allora è scacco matto (o stallo, dipende dal metodo chiamante)
+	// se arriva alla fine allora Ã¨ scacco matto (o stallo, dipende dal metodo chiamante)
 	return true;
 }
 // metodo per "simulare" l'en passant per vedere se potrebbe rimuovere lo scacco dalla scacchiera
 // e quindi evitare un possibile scacco matto o eventuale stallo
-// ritorna true se è possibile effettuare l'en passant
+// ritorna true se Ã¨ possibile effettuare l'en passant
 bool Chessboard::performEPforCM(Piece pedina, int r_, int c_, bool parteBassa)
 {
 	bool destra = pezzi[r_][c_ + 1].EnPassant();
@@ -1205,7 +1205,7 @@ bool Chessboard::performEPforCM(Piece pedina, int r_, int c_, bool parteBassa)
 	pezzi[pawn.Riga()][pawn.Col()] = pawn;
 	return false;
 }
-// questo metodo sposta un pezzo nella posizione desiderata verificando se è possibile, controllando lo scacco
+// questo metodo sposta un pezzo nella posizione desiderata verificando se Ã¨ possibile, controllando lo scacco
 bool Chessboard::SpostaPezzoSM(Piece pezzo, int r_, int c_)
 {
 	Piece pezzoMangiato = pezzi[r_][c_]; // mi salvo il pezzo eventualmente mangiato
@@ -1215,7 +1215,7 @@ bool Chessboard::SpostaPezzoSM(Piece pezzo, int r_, int c_)
 	pezzi[r_][c_].setRiga(pezzoMangiato.Riga());
 	pezzi[r_][c_].setCol(pezzoMangiato.Col());
 	pezzi[pezzo.Riga()][pezzo.Col()] = Piece(pezzo.Riga(), pezzo.Col()); // e lo rimuovo dalla pos. originale
-	// se non c'è più scacco allora ritorno true
+	// se non c'Ã¨ piÃ¹ scacco allora ritorno true
 	if (!ControllaScacco())
 	{
 		pezzi[r_][c_] = pezzoMangiato; // rimetto il pezzo eventualmente mangiato al suo posto originale
@@ -1226,8 +1226,8 @@ bool Chessboard::SpostaPezzoSM(Piece pezzo, int r_, int c_)
 	pezzi[pezzo.Riga()][pezzo.Col()] = pieceTmp;
 	return false;
 }
-// questo metodo controlla se il re si può mouvere in una determinata direzione, se può provo a spostarlo
-// e vedere se c'è lo scacco
+// questo metodo controlla se il re si puÃ² mouvere in una determinata direzione, se puÃ² provo a spostarlo
+// e vedere se c'Ã¨ lo scacco
 bool Chessboard::verificaPosizioneKingSM(bool condition, int r_, int c_, Piece pezzoMangiato)
 {
 	if (condition)
@@ -1238,9 +1238,9 @@ bool Chessboard::verificaPosizioneKingSM(bool condition, int r_, int c_, Piece p
 	}
 	return true;
 }
-// questo metodo sposta i pezzi per verificare se c'è una posizione che possa liberare il re dallo scacco
+// questo metodo sposta i pezzi per verificare se c'Ã¨ una posizione che possa liberare il re dallo scacco
 // la variabile pezzoMangiato mi serve sia per salvarmi l'eventuale pezzo mangiato dal pezzo mosso
-// me mi è utile anche per avere appunto la posizione di dove sto spostando il pezzo
+// me mi Ã¨ utile anche per avere appunto la posizione di dove sto spostando il pezzo
 bool Chessboard::posConsentitaSM(Piece& pezzoMangiato)
 {
 	if (StessoColore(pezzoMangiato, reSottoScacco))
@@ -1253,11 +1253,11 @@ bool Chessboard::posConsentitaSM(Piece& pezzoMangiato)
 	pezzi[tmpMangiato.Riga()][tmpMangiato.Col()].setRiga(tmpMangiato.Riga());
 	// infine rimuovo remporaneamente il re dalla sua posizione originale
 	pezzi[reTmp.Riga()][reTmp.Col()] = Piece(reTmp.Riga(), reTmp.Col());
-	// se non è sotto scacco allora significa che la mossa si può fare e non è scacco matto
+	// se non Ã¨ sotto scacco allora significa che la mossa si puÃ² fare e non Ã¨ scacco matto
 	if (!ControllaScacco())
 	{
-		// riassegno il reSottoScacco perché nel metodo del ControlloScacco vado a salvarmi il re che è sotto scacco
-		// e siccome ora l'ho spostato il re se mi ritorna vero allora mi ha salvato il Re che però non è nella sua posizione
+		// riassegno il reSottoScacco perchÃ© nel metodo del ControlloScacco vado a salvarmi il re che Ã¨ sotto scacco
+		// e siccome ora l'ho spostato il re se mi ritorna vero allora mi ha salvato il Re che perÃ² non Ã¨ nella sua posizione
 		// esatta
 		reSottoScacco = reTmp;
 		// prima rimetto tutto a posto
@@ -1271,7 +1271,7 @@ bool Chessboard::posConsentitaSM(Piece& pezzoMangiato)
 	pezzi[reTmp.Riga()][reTmp.Col()] = reTmp;
 	return false;
 }
-// questo è il metodo principale per poter controllare se il pezzo mosso può essere posizionato
+// questo Ã¨ il metodo principale per poter controllare se il pezzo mosso puÃ² essere posizionato
 // controllando tutti i casi possibili
 bool Chessboard::PosizionaPezzo(int mx, int my)
 {
@@ -1281,14 +1281,14 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 	{
 		// poi vado a ricavare la riga e la colonna
 		fromXY2RowCol(mx, my, riga, col);
-		// controllo prima che non ci sia nessuno scacco presente, poi verifico che se c'è uno scacco
-		// ma il pezzo mosso è dello stesso colore del re sotto scacco allora controllo se la mossa del pezzo
+		// controllo prima che non ci sia nessuno scacco presente, poi verifico che se c'Ã¨ uno scacco
+		// ma il pezzo mosso Ã¨ dello stesso colore del re sotto scacco allora controllo se la mossa del pezzo
 		// potrebbe salvare il re
-		// infine controllo se la mossa effettuata è valida
+		// infine controllo se la mossa effettuata Ã¨ valida
 		if ((!ControllaScacco() || (ControllaScacco() && StessoColore(reSottoScacco, pezzoMosso)))
 			&& !ControllaPezzi(riga, col, pezzoMosso))
 		{
-			// vado a salvarmi il pezzo che è stato eventualmente mangiato
+			// vado a salvarmi il pezzo che Ã¨ stato eventualmente mangiato
 			Piece pezzoMangiato = pezzi[riga][col];
 			// questa variabile mi serve solamente per riprodurre il suono corretto nel caso di una promozione
 			bool promosso = false;
@@ -1296,7 +1296,7 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 			// (anche per poter effettuare gli ultimi controlli)
 			pezzi[riga][col] = Piece(pezzoMosso.Nome(), riga, col, pezzoMosso.PrimaMossa(), pezzoMosso.Arrocco(), 
 				pezzoMosso.Promuovi(), pezzoMosso.EnPassant());
-			// vado a controllare se il pezzo deve essere promosso, quindi è una pedina
+			// vado a controllare se il pezzo deve essere promosso, quindi Ã¨ una pedina
 			if (pezzoMosso.Promuovi())
 			{
 				promosso = true;
@@ -1306,10 +1306,10 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 				while (pezzoMosso.Promuovi())
 					CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
 			}
-			// ora vado a controllare se il re è sotto scacco
+			// ora vado a controllare se il re Ã¨ sotto scacco
 			if (ControllaScacco() && StessoColore(pezzoMosso, reSottoScacco))
 			{
-				// quindi controllo se il re ha già arroccato e con la variabile arroccoTmp verifico che
+				// quindi controllo se il re ha giÃ  arroccato e con la variabile arroccoTmp verifico che
 				// abbia arroccato in questo turno
 				if (pezzoMosso.Is("king") && pezzoMosso.Arrocco() && arroccoTmp)
 				{
@@ -1496,36 +1496,36 @@ bool Chessboard::StessoColore(Piece p1, Piece p2)
 {
 	return (p1.Is("white") && p2.Is("white")) || (p1.Is("black") && p2.Is("black"));
 }
-// controllo se il re può arroccare corto, quindi controllo se il percorso è vuoto
+// controllo se il re puÃ² arroccare corto, quindi controllo se il percorso Ã¨ vuoto
 bool Chessboard::ArroccoDxVuoto(Piece pMoved)
 {
-	return (// innanzitutto controllo che il pezzo mosso sia un re e non si è ancora mosso per la prima volta
+	return (// innanzitutto controllo che il pezzo mosso sia un re e non si Ã¨ ancora mosso per la prima volta
 		!pMoved.PrimaMossa() && pMoved.Is("king"))
-		// poi controllo se il colore che sta in basso è il bianco
+		// poi controllo se il colore che sta in basso Ã¨ il bianco
 		&& ((colori[0]._Equal("white_")
 			// e vado a verificare che non ci siano pezzi nella direzione in cui si sta muovendo, che possano
 			// ostacolarlo
 			&& !pezzi[pMoved.Riga()][pMoved.Col() + 1].Exist() && !pezzi[pMoved.Riga()][pMoved.Col() + 2].Exist())
-			// mentre se il colore che sta sotto è il nero i controlli saranno differenti
-			// perché il re e la regina si scambiano quindi il lato lungo diventa e viceversa
+			// mentre se il colore che sta sotto Ã¨ il nero i controlli saranno differenti
+			// perchÃ© il re e la regina si scambiano quindi il lato lungo diventa e viceversa
 			|| (colori[0]._Equal("black_")
 				// controllo anche qua che non ci siano pezzi sul percorso
 				&& !pezzi[pMoved.Riga()][pMoved.Col() + 1].Exist() && !pezzi[pMoved.Riga()][pMoved.Col() + 2].Exist()
 				&& !pezzi[pMoved.Riga()][pMoved.Col() + 3].Exist()));
 }
-// controllo se il re può arroccare lungo, quindi controllo se il percorso è vuoto
+// controllo se il re puÃ² arroccare lungo, quindi controllo se il percorso Ã¨ vuoto
 bool Chessboard::ArroccoSxVuoto(Piece pMoved)
 {
-	return (// innanzitutto controllo che il pezzo mosso sia un re e non si è ancora mosso per la prima volta
+	return (// innanzitutto controllo che il pezzo mosso sia un re e non si Ã¨ ancora mosso per la prima volta
 		!pMoved.PrimaMossa() && pMoved.Is("king"))
-		// poi controllo se il colore che sta in basso è il bianco
+		// poi controllo se il colore che sta in basso Ã¨ il bianco
 		&& ((colori[0]._Equal("white_")
 			// e vado a verificare che non ci siano pezzi nella direzione in cui si sta muovendo, che possano
 			// ostacolarlo
 			&& !pezzi[pMoved.Riga()][pMoved.Col() - 1].Exist() && !pezzi[pMoved.Riga()][pMoved.Col() - 2].Exist()
 			&& !pezzi[pMoved.Riga()][pMoved.Col() - 3].Exist())
-			// mentre se il colore che sta sotto è il nero i controlli saranno differenti
-			// perché il re e la regina si scambiano quindi il lato lungo diventa e viceversa
+			// mentre se il colore che sta sotto Ã¨ il nero i controlli saranno differenti
+			// perchÃ© il re e la regina si scambiano quindi il lato lungo diventa e viceversa
 			|| (colori[0]._Equal("black_")
 				// controllo anche qua che non ci siano pezzi sul percorso
 				&& !pezzi[pMoved.Riga()][pMoved.Col() - 1].Exist() && !pezzi[pMoved.Riga()][pMoved.Col() - 2].Exist()));

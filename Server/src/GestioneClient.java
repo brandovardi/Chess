@@ -4,45 +4,40 @@ import java.net.*;
 public class GestioneClient implements Runnable {
     private Socket clientSocket;
     private Socket opponentSocket;
+    private String color;
 
-    public GestioneClient(Socket socket)
-    {
+    public GestioneClient(Socket socket, String color) {
         this.clientSocket = socket;
+        this.color = color;
     }
 
-    public void SetOpponentSocket(Socket opponent)
-    {
+    public void SetOpponentSocket(Socket opponent) {
         this.opponentSocket = opponent;
     }
 
-    public void run()
-    {
-        boolean first = true;
+    public void run() {
         try {
-            Chess game = new Chess(null);
+            Chess game = new Chess(color);
 
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
+            BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            DataOutputStream outputServer = new DataOutputStream(clientSocket.getOutputStream());
 
-            if (first)
-            {
-                // la prima volta invio al client che è connesso un'altro utente per poter iniziare la partita
-                String risposta = "ClientConnected";
-                outToClient.writeBytes(risposta);
-            }
 
-            String clientMessage;
-            while ((clientMessage = inFromClient.readLine()) != null) {
+            String clientMessage = "\n" + "start";
+            Thread.sleep(1000);
+            // la prima volta invio al client che è connesso un'altro utente per poter
+            // iniziare la partita
+            outputServer.writeBytes(clientMessage);
+            while ((clientMessage = inputClient.readLine()) != null) {
                 System.out.println("Ricevuto dal client: " + clientMessage);
                 String serverResponse = "";
 
                 // se ho ricevuto qualcosa
                 if (!clientMessage.equals("")) {
-                    
+
                     String[] splitMessage = clientMessage.split("\t");
-    
-                    if (splitMessage.length == 1)
-                    {
+
+                    if (splitMessage.length == 1) {
                         String[] attributes = splitMessage[0].split(";");
                         String[] values = attributes[0].split("_");
                         String name = values[1];
@@ -51,19 +46,19 @@ public class GestioneClient implements Runnable {
                         int cEnd = Integer.parseInt(attributes[2]);
                         int rStart = Integer.parseInt(attributes[3]);
                         int cStart = Integer.parseInt(attributes[4]);
-    
+
                         Piece piece = game.PieceFromString(name, color);
-                        if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd))
-                        {
-                            
+                        if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
+
                         }
+
+                        serverResponse = "OK" + ";" + rStart + ";" + cStart + ";" + rEnd + ";" + cEnd;
                     }
-                }   
+                }
 
-                serverResponse = "MoveOk";
+                // serverResponse = "MoveOk";
                 // invia la conferma al client che ha fatto la mossa
-                outToClient.writeBytes(serverResponse);
-
+                outputServer.writeBytes(serverResponse);
 
                 // dati da inviare all'avversario nel caso la mossa è corretta
                 DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
@@ -74,7 +69,8 @@ public class GestioneClient implements Runnable {
             // Se il client chiude la connessione, esci dal loop
             System.out.println("Connessione chiusa da: " + clientSocket.getInetAddress());
             clientSocket.close();
-        } catch (IOException e) {
+
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
