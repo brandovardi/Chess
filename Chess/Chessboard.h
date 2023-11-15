@@ -2,9 +2,9 @@
 
 #include <thread>
 
-#include "drawing.h"
 #include "Piece.h"
 #include "ClientTCP.h"
+#include "drawing.h"
 
 const int ROW = 8;
 const int COLUMN = 8;
@@ -44,8 +44,6 @@ private:
 	bool posConsentitaSM(Piece& pezzoMangiato);
 	void DisegnaMosseDisponibili();
 	bool StessoColore(Piece p1, Piece p2);
-	void fromXY2RowCol(int _x, int _y, int& _row, int& _col);
-	void fromRowCol2XY(int _row, int _col, int& _x, int& _y);
 
 public:
 	Chessboard(string firstColor = "white");
@@ -58,7 +56,7 @@ public:
 	bool ReSottoScacco(Piece king);
 	bool ControllaScacco();
 	bool ControllaMossa(int _mX, int _mY);
-	void PosizionaPezzo(int mx, int my, ClientTCP& client);
+	void PosizionaPezzo(int mx, int my, ClientTCP* client = nullptr);
 	void CambiaPedina(int _mX, int _mY, bool _mPressed);
 	bool ArroccoDxVuoto(Piece pMoved);
 	bool ArroccoSxVuoto(Piece pMoved);
@@ -73,8 +71,12 @@ public:
 	bool simulateEnPassant(Piece pedina, int r_, int c_, bool parteBassa);
 	bool performEnPassant(int r, int c, string color);
 	string getLastMove() { return this->lastMove; }
+	bool WhiteToMove() { return this->whiteToMove; }
 	// questo metodo lo lascio pubblico perché può tornare utile
 	string ToLowerStr(string& str);
+
+	void fromXY2RowCol(int _x, int _y, int& _row, int& _col);
+	void fromRowCol2XY(int _row, int _col, int& _x, int& _y);
 
 	~Chessboard() {}
 };

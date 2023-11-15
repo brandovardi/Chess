@@ -13,8 +13,6 @@
 #include <sstream>
 #include <vector>
 
-#include "Chessboard.h"
-#include "ClientTCP.h"
 #include "StartGame.h"
 
 vector<string> split(const string& s, char delimiter);
@@ -37,6 +35,7 @@ int main()
 	if (!CheckServerConnection(client, colore))
 		return 0;
 
+	string opponentMove = "";
 	string vincitore = "";
 	// genero il suono per l'inizio della partita
 	sndPlaySound(L"sounds/game-start.wav", SND_ASYNC);
@@ -52,58 +51,81 @@ int main()
 		gameBoard.DisegnaCoordinate();
 		gameBoard.DisegnaPezzi();
 
-		// controllo se viene premuto il tasto sinistro
-		if (LeftMousePressed())
+		if ((gameBoard.WhiteToMove() && colore._Equal("white"))
+			|| (!gameBoard.WhiteToMove() && colore._Equal("black")))
 		{
-			mX = MouseX();
-			mY = MouseY();
-			// controllo se è stato effettivamente cliccato un pezzo
-			if (gameBoard.PezzoCliccato(mX, mY, true))
+			// controllo se viene premuto il tasto sinistro
+			if (LeftMousePressed())
 			{
-				// disegno il pezzo cliccato in movimento mentre tiene premuto il mouse
-				while (LeftMousePressed())
+				mX = MouseX();
+				mY = MouseY();
+				// controllo se è stato effettivamente cliccato un pezzo
+				if (gameBoard.PezzoCliccato(mX, mY, true))
 				{
-					Clear(White);
-					// disegno ogni volta lo sfondo per la scacchiera
-					Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
-					// poi disegno sia le coordinate che i numeri accanto alla scacchiera
-					gameBoard.DisegnaCoordinate();
-					gameBoard.DisegnaPezzi();
-
-					gameBoard.DisegnaInMovimento(MouseX(), MouseY(), true);
-
-					// questo controllo riposiziona il pezzo in movimento alla sua posizione originale
-					// se viene premuto il tasto "esc" e pressed è vera (quindi l'utente sta muovendo un pezzo)
-					if (LastKey() == Esc)
+					// disegno il pezzo cliccato in movimento mentre tiene premuto il mouse
+					while (LeftMousePressed())
 					{
-						// allora richiamo anche qua la funzione per piazzare il pezzo passandogli come coordinate quelle di partenza
-						// (quelle precedentemente salvate)
-						gameBoard.ControllaMossa(mX, mY);
-						posiziona = false;
-						break;
-					}
+						Clear(White);
+						// disegno ogni volta lo sfondo per la scacchiera
+						Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
+						// poi disegno sia le coordinate che i numeri accanto alla scacchiera
+						gameBoard.DisegnaCoordinate();
+						gameBoard.DisegnaPezzi();
 
-					Present();
-				}
-				// uscito dal ciclo ha lasciato il pezzo con il mouse e quindi lo posiziono
-				if (posiziona)
-				{
-					// richiamo la funzione placePiece() passandogli le coordinate del mouse, per posizionare la pedina
-					if (gameBoard.ControllaMossa(MouseX(), MouseY()))
-					{
-						client.Send(gameBoard.getLastMove());
-						string response = client.Recieve();
-						vector<string> str = split(response, ';');
-						if (str.at(0) == "OK")
+						gameBoard.DisegnaInMovimento(MouseX(), MouseY(), true);
+
+						// questo controllo riposiziona il pezzo in movimento alla sua posizione originale
+						// se viene premuto il tasto "esc" e pressed è vera (quindi l'utente sta muovendo un pezzo)
+						if (LastKey() == Esc)
 						{
+							// allora richiamo anche qua la funzione per piazzare il pezzo passandogli come coordinate quelle di partenza
+							// (quelle precedentemente salvate)
+							gameBoard.ControllaMossa(mX, mY);
+							posiziona = false;
+							break;
+						}
 
+						Present();
+					}
+					// uscito dal ciclo ha lasciato il pezzo con il mouse e quindi lo posiziono
+					if (posiziona)
+					{
+						// richiamo la funzione placePiece() passandogli le coordinate del mouse, per posizionare la pedina
+						mX = MouseX();
+						mY = MouseY();
+						if (gameBoard.ControllaMossa(mX, mY))
+						{
+							client.Send(gameBoard.getLastMove());
+							string response = client.Recieve();
+							vector<string> str = split(response, ';');
+							if (str.at(0) == "OK")
+							{
+								gameBoard.PosizionaPezzo(mX, mY, &client);
+							}
 						}
 					}
+					else
+						posiziona = true;
 				}
-				else
-					posiziona = true;
 			}
 		}
+		else
+		{
+			Present();
+			client.Recieve(); // leggo prima l'invio
+			opponentMove = client.Recieve();
+			vector<string> str = split(opponentMove, ';');
+
+			int r = stoi(str.at(1)), c = stoi(str.at(2));
+			int x = 0, y = 0;
+			gameBoard.fromRowCol2XY(r, c, x, y);
+			gameBoard.PezzoCliccato(x, y);
+
+			r = stoi(str.at(3)), c = stoi(str.at(4));
+			gameBoard.fromRowCol2XY(r, c, x, y);
+			gameBoard.PosizionaPezzo(x, y);
+		}
+
 		Present();
 	}
 

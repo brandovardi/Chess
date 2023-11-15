@@ -1,3 +1,13 @@
+class Posizione {
+    public int riga;
+    public int colonna;
+
+    Posizione(int riga, int colonna) {
+        this.riga = riga;
+        this.colonna = colonna;
+    }
+}
+
 public class Chess {
     // costanti
     final public int ROW = 8;
@@ -58,4 +68,19 @@ public class Chess {
         }
     }
 
+    public Posizione calcolaCoordinateOpposte(Posizione posizione) {
+        // Assumiamo una scacchiera 8x8
+        final int dimensioneScacchiera = 8;
+
+        // Calcola le coordinate opposte riflettendo rispetto al centro della scacchiera
+        int rigaOpposta = dimensioneScacchiera - 1 - posizione.riga;
+        int colonnaOpposta = dimensioneScacchiera - 1 - posizione.colonna;
+
+        // Aggiorna i valori dentro all'oggetto Posizione
+        posizione.riga = rigaOpposta;
+        posizione.colonna = colonnaOpposta;
+
+        // Restituisci l'oggetto Posizione modificato
+        return posizione;
+    }
 }

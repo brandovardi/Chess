@@ -32,6 +32,7 @@ public class GestioneClient implements Runnable {
                 System.out.println("Ricevuto dal client: " + clientMessage);
                 String serverResponse = "";
 
+                int rStart = 0, cStart = 0, rEnd = 0, cEnd = 0;
                 // se ho ricevuto qualcosa
                 if (!clientMessage.equals("")) {
 
@@ -42,10 +43,10 @@ public class GestioneClient implements Runnable {
                         String[] values = attributes[0].split("_");
                         String name = values[1];
                         String color = values[0];
-                        int rEnd = Integer.parseInt(attributes[1]);
-                        int cEnd = Integer.parseInt(attributes[2]);
-                        int rStart = Integer.parseInt(attributes[3]);
-                        int cStart = Integer.parseInt(attributes[4]);
+                        rStart = Integer.parseInt(attributes[1]);
+                        cStart = Integer.parseInt(attributes[2]);
+                        rEnd = Integer.parseInt(attributes[3]);
+                        cEnd = Integer.parseInt(attributes[4]);
 
                         Piece piece = game.PieceFromString(name, color);
                         if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
@@ -62,6 +63,13 @@ public class GestioneClient implements Runnable {
 
                 // dati da inviare all'avversario nel caso la mossa è corretta
                 DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
+                Posizione p1 = new Posizione(rStart, cStart);
+                Posizione pp1 = game.calcolaCoordinateOpposte(p1);
+
+                Posizione p2 = new Posizione(rEnd, cEnd);
+                Posizione pp2 = game.calcolaCoordinateOpposte(p2);
+
+                serverResponse = "\nOK" + ";" + pp1.riga + ";" + pp1.colonna + ";" + pp2.riga + ";" + pp2.colonna;
                 // invio i dati all'avversario se la mossa è corretta
                 outOpponent.writeBytes(serverResponse);
             }

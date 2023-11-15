@@ -136,8 +136,8 @@ bool Chessboard::PezzoCliccato(int mx, int my, bool trigger)
 		* questo controllo serve per verificare che il pezzo cliccato esista effettivamente, e controllo anche
 		* se al turno del bianco è stato selezionato un pezzo bianco o vicerversa per il nero
 		*/
-		if (pieceTmp.Exist() && ((whiteToMove && pieceTmp.Is("white") && (colori[0]._Equal("white_")) && trigger)
-			|| (!whiteToMove && pieceTmp.Is("black") && (colori[0]._Equal("black_") && trigger)))) {
+		if (pieceTmp.Exist() && ((whiteToMove && pieceTmp.Is("white") /* && (colori[0]._Equal("white_")) */ ))
+			|| (!whiteToMove && pieceTmp.Is("black") /*&& (colori[0]._Equal("black_"))*/)) {
 			// rimuovo il pezzo da dove è stato prezo
 			pezzi[riga][col] = Piece(riga, col);
 			// assegno allora al "pezzo in movimento" il pezzo cliccato
@@ -1322,7 +1322,7 @@ bool Chessboard::ControllaMossa(int mx, int my)
 
 			// salvo il pezzo mosso in una stringa
 			lastMove = pezzi[riga][col].getServerString() + ";" + to_string(pezzoMosso.Riga()) + ";"
-				+ to_string(pezzoMosso.Col()) + "\t";
+				+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col) + "\t";
 
 			if (!pezzoMosso.Is("king") && ScaccoMatto())
 				lastMove.append("ScaccoMatto");
@@ -1331,8 +1331,6 @@ bool Chessboard::ControllaMossa(int mx, int my)
 			else if (promosso)
 				lastMove.append("Promoted");
 
-			// genero i suoni per la mossa effettuata
-			playSound(promosso, pezzoMangiato);
 			// siccome devo lasciare i controlli finali al server metto tutto a posto com'era prima
 			pezzi[savedPieceMoved.Riga()][savedPieceMoved.Col()] = savedPieceMoved;
 			pezzi[riga][col] = pezzoMangiato;
@@ -1348,12 +1346,13 @@ bool Chessboard::ControllaMossa(int mx, int my)
 	return false;
 }
 // metodo per posizionare il pezzo dopo aver ricevuto conferma dal server
-void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP& client)
+void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client)
 {
 	// quando devo posizionare il pezzo, dal main ricevo la x e la y di dove deve andare messo il pezzo
 	fromXY2RowCol(mx, my, riga, col);
 	// rimuovo il pezzo mosso dalla sua posizione originale siccome dopo i controlli lo rimetto al suo posto
 	pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece();
+	Piece pezzoMangiato = pezzi[riga][col];
 	// vado a vedere quale colore si trova nella parte bassa della scacchiera per questo client
 	bool parteBassa = (pezzoMosso.Is("white") && colori[0]._Equal("white_"))
 		|| (pezzoMosso.Is("black") && colori[0]._Equal("black_"));
@@ -1408,8 +1407,11 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP& client)
 		string name = pezzi[riga][col].Nome();
 		string messaggio = "OnlyPromoted;" + name.erase(name.find(imgExt)) + ";" + to_string(riga) + ";" + to_string(col);
 		// invio questo messaggio al server per digli quale pezzo ha scelto l'utente dopo la promozione
-		client.Send(messaggio);
+		client->Send(messaggio);
 	}
+
+	// genero i suoni per la mossa effettuata
+	playSound(pezzoMosso.Promuovi(), pezzoMangiato);
 
 	pezzi[riga][col] = pezzoMosso;
 	pezzoMosso = Piece();
