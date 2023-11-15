@@ -4,6 +4,7 @@
 
 #include "drawing.h"
 #include "Piece.h"
+#include "ClientTCP.h"
 
 const int ROW = 8;
 const int COLUMN = 8;
@@ -56,7 +57,8 @@ public:
 	void Arrocca(int r1, int c1);
 	bool ReSottoScacco(Piece king);
 	bool ControllaScacco();
-	bool PosizionaPezzo(int _mX, int _mY);
+	bool ControllaMossa(int _mX, int _mY);
+	void PosizionaPezzo(int mx, int my, ClientTCP& client);
 	void CambiaPedina(int _mX, int _mY, bool _mPressed);
 	bool ArroccoDxVuoto(Piece pMoved);
 	bool ArroccoSxVuoto(Piece pMoved);
@@ -68,8 +70,8 @@ public:
 	bool verificaMosseSM(bool stallo = false);
 	bool MateFunction(Piece re = Piece());
 	bool SpostaPezzoSM(Piece pezzo, int r_, int c_);
-	bool performEPforCM(Piece pedina, int r_, int c_, bool parteBassa);
-	bool EnPassant(int r, int c, string color);
+	bool simulateEnPassant(Piece pedina, int r_, int c_, bool parteBassa);
+	bool performEnPassant(int r, int c, string color);
 	string getLastMove() { return this->lastMove; }
 	// questo metodo lo lascio pubblico perché può tornare utile
 	string ToLowerStr(string& str);

@@ -4,7 +4,7 @@
 bool Piece::Exist()
 {
 	// unico pezzo di codice chiesto a Chat Gpt nell'intero programma
-	// (la struttura della regex l'ho calcolata online perché non le avevo mai usate prima(ora so più o meno come si usano))
+	// (la struttura della regex l'ho calcolata online perchÃ© non le avevo mai usate prima(ora so piÃ¹ o meno come si usano))
 	std::smatch match;
 	return std::regex_search(this->nome, match, (regex)"[a-z]+_[a-z]+\\.bmp");
 }
@@ -13,7 +13,7 @@ string Piece::getServerString()
 {
 	string str = string(nome + ";" + to_string(riga) + ";" + to_string(colonna));
 
-	str.replace(str.find(".bmp"), 4, "");
+	str.erase(str.find(imgExt));
 
 	return str;
 }

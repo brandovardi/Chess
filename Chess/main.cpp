@@ -9,58 +9,33 @@
 * https://github.com/npiegdon/immediate2d
 */
 
+// split
 #include <sstream>
 #include <vector>
 
 #include "Chessboard.h"
 #include "ClientTCP.h"
+#include "StartGame.h"
 
-string controllaSceltaColore(int mx, int my);
-void drawSquare(int mx, int my);
-string chooseColor();
+vector<string> split(const string& s, char delimiter);
+bool CheckServerConnection(ClientTCP& server, string colore);
 
-vector<string> split(const string& s, char delimiter) {
-	vector<string> tokens;
-	istringstream tokenStream(s);
-	string token;
-
-	while (getline(tokenStream, token, delimiter)) {
-		tokens.push_back(token);
-	}
-
-	return tokens;
-}
-
-// mancano i controlli per lo scacco matto (il controllo per lo scacco normale c'è), lo stallo
+// main code
 int main()
 {
 	UseDoubleBuffering(true); // questa funzione serve per evitare lo "sfarfallio" caricando prima la pagina da disegnare
 
-	string colore = chooseColor();
+	StartGame game = StartGame();
+	string colore = game.chooseColor();
 
 	Chessboard gameBoard = Chessboard(colore); // creo la scacchiera indicando il colore
-	ClientTCP server = ClientTCP();
+	ClientTCP client = ClientTCP();
 	bool exit = false; // variabile che controlla il termine del gioco
 	bool pressed = false; // variabile per memorizzare se è stato premuto un pezzo
 	int mX = -1, mY = -1; // coordinate per memorizzare la posizione del mouse
 
-	Clear(White);
-	if (!server.CreateSocketConnectServer())
-	{
-		DrawString(Width / 2, 0, "Errore durante la\nconnessione al server", "Century", 20, Black, true);
-		Present();
-		Wait(3000);
-	}
-	else
-	{
-		// finchè il server non trova un'altro giocatore con un colore diverso dal mio non inizia la partita
-		DrawString(Width / 2, 0, "Attendere...", "Century", 20, Black, true);
-		Present();
-		// invio al server il colore che ho selezionato
-		server.Send(colore);
-		// attendo quindi la risposta del server per poter iniziare
-		while (!server.Recieve()._Equal("start")) {} // secondo
-	}
+	if (!CheckServerConnection(client, colore))
+		return 0;
 
 	string vincitore = "";
 	// genero il suono per l'inizio della partita
@@ -82,8 +57,10 @@ int main()
 		{
 			mX = MouseX();
 			mY = MouseY();
+			// controllo se è stato effettivamente cliccato un pezzo
 			if (gameBoard.PezzoCliccato(mX, mY, true))
 			{
+				// disegno il pezzo cliccato in movimento mentre tiene premuto il mouse
 				while (LeftMousePressed())
 				{
 					Clear(White);
@@ -101,22 +78,22 @@ int main()
 					{
 						// allora richiamo anche qua la funzione per piazzare il pezzo passandogli come coordinate quelle di partenza
 						// (quelle precedentemente salvate)
-						gameBoard.PosizionaPezzo(mX, mY);
+						gameBoard.ControllaMossa(mX, mY);
 						posiziona = false;
 						break;
 					}
 
 					Present();
 				}
-
+				// uscito dal ciclo ha lasciato il pezzo con il mouse e quindi lo posiziono
 				if (posiziona)
 				{
-					// richiamo la funzione placePiece() passandogli le coordinate del mouse, per "piazzare" la pedina
-					if (gameBoard.PosizionaPezzo(MouseX(), MouseY()))
+					// richiamo la funzione placePiece() passandogli le coordinate del mouse, per posizionare la pedina
+					if (gameBoard.ControllaMossa(MouseX(), MouseY()))
 					{
-						server.Send(gameBoard.getLastMove());
-						string x = server.Recieve();
-						vector<string> str = split(x, ';');
+						client.Send(gameBoard.getLastMove());
+						string response = client.Recieve();
+						vector<string> str = split(response, ';');
 						if (str.at(0) == "OK")
 						{
 
@@ -140,8 +117,8 @@ int main()
 		DrawString(Width / 2, 0, "Vince il Nero", "Century", 30, Black, true);
 	Present();
 	Wait(3000);
-
-	server.Close();
+	// chiudo la connessione con il server (quindi chiudo la socket)
+	client.Close();
 
 	// una volta finito il gioco chiudo la finestra
 	CloseWindow();
@@ -149,44 +126,36 @@ int main()
 	return 0;
 }
 
-string chooseColor()
+bool CheckServerConnection(ClientTCP& server, string colore)
 {
-	string colore = "";
-	while (true)
+	Clear(White);
+	if (!server.CreateSocketConnectServer())
 	{
-		Clear(White);
-
-		DrawString(Width / 2, 0, "Scegli il colore", "Century", 30, Blue, true);
-
-		Draw(IMG_PATH + "white_pawn" + imgExt, (Width / 2) - (CELL_HEIGHT), CELL_HEIGHT);
-		Draw(IMG_PATH + "black_pawn" + imgExt, (Width / 2), CELL_HEIGHT);
-
-		drawSquare(MouseX(), MouseY());
-
-		if (LeftMousePressed()) {
-			while (LeftMousePressed()) {}
-			if (!(colore = controllaSceltaColore(MouseX(), MouseY()))._Equal("")) {
-				return colore;
-			}
-		}
-
+		DrawString(Width / 2, 0, "Errore durante la\nconnessione al server", "Century", 20, Black, true);
 		Present();
+		sndPlaySound(L"sounds/game-end.wav", SND_ASYNC);
+		Wait(3000);
+		CloseWindow();
+		return false;
 	}
+	// finchè il server non trova un'altro giocatore con un colore diverso dal mio non inizia la partita
+	DrawString(Width / 2, 0, "Attendere...", "Century", 20, Black, true);
+	Present();
+	// invio al server il colore che ho selezionato
+	server.Send(colore);
+	// attendo quindi la risposta del server per poter iniziare (in attesa di un'altro client)
+	while (!server.Recieve()._Equal("start")) {}
+
+	return true;
 }
 
-string controllaSceltaColore(int mx, int my)
-{
-	if (mx > ((Width / 2) - CELL_WIDTH) && mx < (Width / 2) && my > CELL_HEIGHT && my < (CELL_HEIGHT * 2))
-		return "white";
-	else if (mx > (Width / 2) && mx < ((Width / 2) + CELL_WIDTH) && my > CELL_HEIGHT && my < (CELL_HEIGHT * 2))
-		return "black";
-	return "";
-}
+vector<string> split(const string& s, char car) {
+	vector<string> splitted = {};
+	istringstream startStr(s);
+	string element = "";
 
-void drawSquare(int mx, int my)
-{
-	if (mx > ((Width / 2) - CELL_WIDTH) && mx < (Width / 2) && my > CELL_HEIGHT && my < (CELL_HEIGHT * 2))
-		DrawRectangle(((Width / 2) - CELL_WIDTH), CELL_HEIGHT, CELL_WIDTH - 1, CELL_HEIGHT, Black, false);
-	else if (mx > (Width / 2) && mx < ((Width / 2) + CELL_WIDTH) && my > CELL_HEIGHT && my < (CELL_HEIGHT * 2))
-		DrawRectangle((Width / 2), CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT, Black, false);
+	while (getline(startStr, element, car))
+		splitted.push_back(element);
+
+	return splitted;
 }

@@ -315,24 +315,14 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 1].Exist() && !pezzi[rDest][cDest + 1].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
 							{
-								// sposto il re
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2] = pMoved;
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2].setCol(pMoved.Col() + 2);
-								//// e libero la sua vecchia cella
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2] = Piece(pMoved.Riga(), pMoved.Col() + 2);
-								Arrocca(rDest, cDest + 1);
+								//Arrocca(rDest, cDest + 1);
 								_castling = true;
 							}
 							// all'opposto controllo le stesse cose per il lato sinistro
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 2].Exist() && !pezzi[rDest][cDest - 2].PrimaMossa()
 								&& ArroccoSxVuoto(pMoved))
 							{
-								// sposto il re
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2] = pMoved;
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2].setCol(pMoved.Col() - 2);
-								//// e libero la sua vecchia cella
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2] = Piece(pMoved.Riga(), pMoved.Col() - 2);
-								Arrocca(rDest, cDest - 2);
+								//Arrocca(rDest, cDest - 2);
 								_castling = true;
 							}
 						}
@@ -343,24 +333,14 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 2].Exist() && !pezzi[rDest][cDest + 2].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
 							{
-								// sposto il re
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2] = pMoved;
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2].setCol(pMoved.Col() + 2);
-								//// e libero la sua vecchia cella
-								//pezzi[pMoved.Riga()][pMoved.Col() + 2] = Piece(pMoved.Riga(), pMoved.Col() + 2);
-								Arrocca(rDest, cDest + 2);
+								//Arrocca(rDest, cDest + 2);
 								_castling = true;
 							}
 							// all'opposto controllo le stesse cose per il lato sinistro
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 1].Exist() && !pezzi[rDest][cDest - 1].PrimaMossa()
 								&& ArroccoSxVuoto(pMoved))
 							{
-								// sposto il re
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2] = pMoved;
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2].setCol(pMoved.Col() - 2);
-								//// e libero la sua vecchia cella
-								//pezzi[pMoved.Riga()][pMoved.Col() - 2] = Piece(pMoved.Riga(), pMoved.Col() - 2);
-								Arrocca(rDest, cDest - 1);
+								//Arrocca(rDest, cDest - 1);
 								_castling = true;
 							}
 						}
@@ -425,12 +405,12 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 		}
 		// controllo se può fare l'en passant
 		if (controlEnPassant)
-			return EnPassant(rDest, cDest, (parteBassa ? colori[0] : colori[1]));
+			return simulateEnPassant(pezzoMosso, rDest, cDest, parteBassa);
 	}
 	return false;
 }
 // metodo per effettuare l'en passant
-bool Chessboard::EnPassant(int r, int c, string color)
+bool Chessboard::performEnPassant(int r, int c, string color)
 {
 	// qua implemento le regole per effettuare l'enpassant
 	// prima posiziono la pedina bianca nella cella di destinazione
@@ -1156,19 +1136,6 @@ bool Chessboard::MateFunction(Piece re)
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -1 : 1)), (j - 1)))
 								return false;
 					}
-					if ((parteBassa && i == 3 && (j < COLUMN - 1 || j >= 1))
-						|| (parteAlta && i == 4 && (j < COLUMN - 1 || j >= 1)))
-					{
-						// controllo le condizioni necessarie per l'En Passant
-						if (twoFAenPass && (pezzi[i][j + 1].Is("pawn") && !StessoColore(pezzi[i][j], pezzi[i][j + 1])
-							&& pezzi[i][j + 1].EnPassant()
-							|| (pezzi[i][j - 1].Is("pawn") && !StessoColore(pezzi[i][j], pezzi[i][j - 1])
-								&& pezzi[i][j - 1].EnPassant())))
-						{
-							if (performEPforCM(pezzi[i][j], i, j, parteBassa))
-								return false;
-						}
-					}
 				}
 			}
 		}
@@ -1178,30 +1145,31 @@ bool Chessboard::MateFunction(Piece re)
 	// se arriva alla fine allora è scacco matto (o stallo, dipende dal metodo chiamante)
 	return true;
 }
-// metodo per "simulare" l'en passant per vedere se potrebbe rimuovere lo scacco dalla scacchiera
-// e quindi evitare un possibile scacco matto o eventuale stallo
-// ritorna true se è possibile effettuare l'en passant
-bool Chessboard::performEPforCM(Piece pedina, int r_, int c_, bool parteBassa)
+// metodo per "simulare" l'en passant
+bool Chessboard::simulateEnPassant(Piece pedina, int r_, int c_, bool parteBassa)
 {
 	bool destra = pezzi[r_][c_ + 1].EnPassant();
-	Piece opponentPawn = pezzi[r_][c_ + (destra ? 1 : -1)];
+	int rowNum = (parteBassa ? -1 : 1);
+	int colNum = (destra ? 1 : -1);
+	Piece opponentPawn = pezzi[r_][c_ + colNum];
 	Piece pawn = pedina;
 	// sposto il pezzo
-	pezzi[r_ + (parteBassa ? -1 : 1)][c_ + (destra ? 1 : -1)] = pedina;
+	pezzi[r_ + rowNum][c_ + colNum] = pedina;
 	// aggiorno riga e colonna dopo averlo spostato
-	pezzi[r_ + (parteBassa ? -1 : 1)][c_ + (destra ? 1 : -1)].setRiga(r_ + (parteBassa ? -1 : 1));
-	pezzi[r_ + (parteBassa ? -1 : 1)][c_ + (destra ? 1 : -1)].setCol(c_ + (destra ? 1 : -1));
+	pezzi[r_ + rowNum][c_ + colNum].setRiga(r_ + rowNum);
+	pezzi[r_ + rowNum][c_ + colNum].setCol(c_ + colNum);
 	// infine rimuovo la pedina che dovrei mangiare facendo l'en passant
-	pezzi[r_][c_ + (destra ? 1 : -1)] = Piece(r_, c_ + (destra ? 1 : -1));
+	pezzi[r_][c_ + colNum] = Piece(r_, c_ + colNum);
+	// poi rimetto tutto a posto
 	if (!ControllaScacco())
 	{
-		pezzi[r_ + (parteBassa ? -1 : 1)][c_ + (destra ? 1 : -1)] = Piece(r_ + (parteBassa ? -1 : 1), c_ + (destra ? 1 : -1));
-		pezzi[r_][c_ + (destra ? 1 : -1)] = opponentPawn;
+		pezzi[r_ + rowNum][c_ + colNum] = Piece(r_ + rowNum, c_ + colNum);
+		pezzi[r_][c_ + colNum] = opponentPawn;
 		pezzi[pawn.Riga()][pawn.Col()] = pawn;
 		return true;
 	}
-	pezzi[r_ + (parteBassa ? -1 : 1)][c_ + (destra ? 1 : -1)] = Piece(r_ + (parteBassa ? -1 : 1), c_ + (destra ? 1 : -1));
-	pezzi[r_][c_ + (destra ? 1 : -1)] = opponentPawn;
+	pezzi[r_ + rowNum][c_ + colNum] = Piece(r_ + rowNum, c_ + colNum);
+	pezzi[r_][c_ + colNum] = opponentPawn;
 	pezzi[pawn.Riga()][pawn.Col()] = pawn;
 	return false;
 }
@@ -1273,7 +1241,7 @@ bool Chessboard::posConsentitaSM(Piece& pezzoMangiato)
 }
 // questo è il metodo principale per poter controllare se il pezzo mosso può essere posizionato
 // controllando tutti i casi possibili
-bool Chessboard::PosizionaPezzo(int mx, int my)
+bool Chessboard::ControllaMossa(int mx, int my)
 {
 	// prima controllo se il pezzo esiste e se le coordinate passate sono all'interno della scacchiera
 	if (pezzoMosso.Exist() && mx <= COLUMN * CELL_WIDTH && my <= ROW * CELL_HEIGHT
@@ -1281,6 +1249,8 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 	{
 		// poi vado a ricavare la riga e la colonna
 		fromXY2RowCol(mx, my, riga, col);
+		// mi salvo il pezzo mosso siccome nella "ControllaPezzi()" subirà delle modifiche
+		Piece savedPieceMoved = pezzoMosso;
 		// controllo prima che non ci sia nessuno scacco presente, poi verifico che se c'è uno scacco
 		// ma il pezzo mosso è dello stesso colore del re sotto scacco allora controllo se la mossa del pezzo
 		// potrebbe salvare il re
@@ -1302,9 +1272,6 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 				promosso = true;
 				// metto un ciclo vuoto per dare il tempo all'utente di lasciare il tasto del mouse prima di scegliere
 				while (LeftMousePressed()) {}
-				// ora rimango dentro il ciclo per far scegliere il nuovo pezzo al giocatore
-				while (pezzoMosso.Promuovi())
-					CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
 			}
 			// ora vado a controllare se il re è sotto scacco
 			if (ControllaScacco() && StessoColore(pezzoMosso, reSottoScacco))
@@ -1322,12 +1289,6 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 						pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
 						// e tolgo da dove l'avevo messo
 						pezzi[riga][col] = Piece(riga, col);
-						// poi rimetto la torre al suo posto
-						pezzi[riga][col + (bianco ? 1 : 2)] = pezzi[riga][col - 1];
-						pezzi[riga][col + (bianco ? 1 : 2)].setPrimaMossa(false);
-						pezzi[riga][col + (bianco ? 1 : 2)].setRiga(riga);
-						pezzi[riga][col + (bianco ? 1 : 2)].setCol(col + (bianco ? 1 : 2));
-						pezzi[riga][col - 1] = Piece(riga, col - 1);
 					}
 					// o se ha arroccato lungo
 					else if (col < pezzoMosso.Col())
@@ -1336,12 +1297,6 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 						pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
 						// e tolgo da dove l'avevo messo
 						pezzi[riga][col] = Piece(riga, col);
-						// poi rimetto la torre al suo posto
-						pezzi[riga][col + (bianco ? -2 : -1)] = pezzi[riga][col + 1];
-						pezzi[riga][col + (bianco ? -2 : -1)].setPrimaMossa(false);
-						pezzi[riga][col + (bianco ? -2 : -1)].setRiga(riga);
-						pezzi[riga][col + (bianco ? -2 : -1)].setCol(col + (bianco ? -2 : -1));
-						pezzi[riga][col + 1] = Piece(riga, col + 1);
 					}
 					pezzoMangiato = Piece();
 				}
@@ -1373,11 +1328,17 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 				lastMove.append("ScaccoMatto");
 			else if (!pezzoMosso.Is("king") && Stallo())
 				lastMove.append("Stallo");
+			else if (promosso)
+				lastMove.append("Promoted");
 
 			// genero i suoni per la mossa effettuata
 			playSound(promosso, pezzoMangiato);
-			pezzoMosso = Piece();
-			whiteToMove = !whiteToMove;
+			// siccome devo lasciare i controlli finali al server metto tutto a posto com'era prima
+			pezzi[savedPieceMoved.Riga()][savedPieceMoved.Col()] = savedPieceMoved;
+			pezzi[riga][col] = pezzoMangiato;
+
+			// poi resetto quello che mi serve
+			// whiteToMove = !whiteToMove;
 			reSottoScacco = Piece();
 			arroccoTmp = false;
 			return true;
@@ -1385,6 +1346,74 @@ bool Chessboard::PosizionaPezzo(int mx, int my)
 	}
 	resetPezzo();
 	return false;
+}
+// metodo per posizionare il pezzo dopo aver ricevuto conferma dal server
+void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP& client)
+{
+	// quando devo posizionare il pezzo, dal main ricevo la x e la y di dove deve andare messo il pezzo
+	fromXY2RowCol(mx, my, riga, col);
+	// rimuovo il pezzo mosso dalla sua posizione originale siccome dopo i controlli lo rimetto al suo posto
+	pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece();
+	// vado a vedere quale colore si trova nella parte bassa della scacchiera per questo client
+	bool parteBassa = (pezzoMosso.Is("white") && colori[0]._Equal("white_"))
+		|| (pezzoMosso.Is("black") && colori[0]._Equal("black_"));
+	// controllo se devo effettuare l'enpassant
+	if (pezzoMosso.EnPassant())
+	{
+		performEnPassant(riga, col, (parteBassa ? colori[0] : colori[1]));
+	}
+	// controllo se devo arroccare
+	else if (pezzoMosso.Arrocco())
+	{
+		// controllo da che parte devo arroccare
+		if (colori[0]._Equal("white_"))
+		{
+			// controllo se si è mosso verso destra, verificando che anche per la torre sia la prima mossa
+			// e che il "percorso" sia libero
+			if (col == (pezzoMosso.Col() + 2) && pezzi[riga][col + 1].Exist() && !pezzi[riga][col + 1].PrimaMossa()
+				&& ArroccoDxVuoto(pezzoMosso))
+			{
+				Arrocca(riga, col + 1);
+			}
+			// all'opposto controllo le stesse cose per il lato sinistro
+			else if (col == (pezzoMosso.Col() - 2) && pezzi[riga][col - 2].Exist() && !pezzi[riga][col - 2].PrimaMossa()
+				&& ArroccoSxVuoto(pezzoMosso))
+			{
+				Arrocca(riga, col - 2);
+			}
+		}
+		else if (colori[0]._Equal("black_"))
+		{
+			// controllo se si è mosso verso destra, verificando che anche per la torre sia la prima mossa
+			// e che il "percorso" sia libero
+			if (col == (pezzoMosso.Col() + 2) && pezzi[riga][col + 2].Exist() && !pezzi[riga][col + 2].PrimaMossa()
+				&& ArroccoDxVuoto(pezzoMosso))
+			{
+				Arrocca(riga, col + 2);
+			}
+			// all'opposto controllo le stesse cose per il lato sinistro
+			else if (col == (pezzoMosso.Col() - 2) && pezzi[riga][col - 1].Exist() && !pezzi[riga][col - 1].PrimaMossa()
+				&& ArroccoSxVuoto(pezzoMosso))
+			{
+				Arrocca(riga, col - 1);
+			}
+		}
+	}
+	else if (pezzoMosso.Promuovi())
+	{
+		// ora rimango dentro il ciclo per far scegliere il nuovo pezzo al giocatore
+		while (pezzoMosso.Promuovi())
+			CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
+
+		string name = pezzi[riga][col].Nome();
+		string messaggio = "OnlyPromoted;" + name.erase(name.find(imgExt)) + ";" + to_string(riga) + ";" + to_string(col);
+		// invio questo messaggio al server per digli quale pezzo ha scelto l'utente dopo la promozione
+		client.Send(messaggio);
+	}
+
+	pezzi[riga][col] = pezzoMosso;
+	pezzoMosso = Piece();
+	whiteToMove = !whiteToMove;
 }
 // metodo per generare il suono in base alla mossa effettuata dal giocatore
 void Chessboard::playSound(bool promoted, Piece eatenPiece)

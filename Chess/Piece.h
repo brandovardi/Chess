@@ -4,6 +4,8 @@
 #include <string>
 #include <regex> // per controllare il nome del pezzo
 
+#include "Chessboard.h"
+
 using namespace std;
 
 const string IMG_PATH = "images/";
@@ -66,11 +68,11 @@ public:
 	bool EnPassant() { return this->enPassant; }
 
 	/*
-	* La funzione find restituirà std::string::npos se la stringa o il carattere non viene trovato
+	* La funzione find restituirÃ  std::string::npos se la stringa o il carattere non viene trovato
 	* all'interno della stringa di ricerca.
-	* In caso contrario, restituirà l'indice iniziale della prima occorrenza trovata.
+	* In caso contrario, restituirÃ  l'indice iniziale della prima occorrenza trovata.
 	*/
-	// con questo metodo posso verificare sia se il pezzo è una torre, un cavallo... o anche se è bianco o nero
+	// con questo metodo posso verificare sia se il pezzo Ã¨ una torre, un cavallo... o anche se Ã¨ bianco o nero
 	bool Is(string piece) { return this->nome.find(piece) != std::string::npos; }
 
 	bool Exist();
