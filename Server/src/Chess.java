@@ -16,7 +16,7 @@ public class Chess {
     // attributi
     private Piece[][] chessBoard;
     private Piece.Color playerColor;
-    private Piece.Color oppositeColor;
+    private Piece.Color opponentColor;
     private boolean whiteToMove;
 
     public Chess(String color) {
@@ -26,22 +26,54 @@ public class Chess {
         if (color == null || color.toLowerCase().equals("white"))
         {
             this.playerColor = Piece.Color.WHITE;
-            this.oppositeColor = Piece.Color.BLACK;
+            this.opponentColor = Piece.Color.BLACK;
         }
         else if (color.toLowerCase().equals("black"))
         {
             this.playerColor = Piece.Color.BLACK;
-            this.oppositeColor = Piece.Color.WHITE;
+            this.opponentColor = Piece.Color.WHITE;
         }
+
         // all pieces
-        int i = 0;
-        for (Piece.Name piece : Piece.Name.values()) {
-            this.chessBoard[0][i] = new Piece(piece, this.oppositeColor);
-            this.chessBoard[7][i] = new Piece(piece, this.playerColor);
+        this.chessBoard[7][0] = new Piece(Piece.Name.ROOK, this.playerColor);
+        this.chessBoard[7][1] = new Piece(Piece.Name.KNIGHT, this.playerColor);
+        this.chessBoard[7][2] = new Piece(Piece.Name.BISHOP, this.playerColor);
+        this.chessBoard[7][5] = new Piece(Piece.Name.BISHOP, this.playerColor);
+        this.chessBoard[7][6] = new Piece(Piece.Name.KNIGHT, this.playerColor);
+        this.chessBoard[7][7] = new Piece(Piece.Name.ROOK, this.playerColor);
+        // il re e la regine devo controllare prima di posizionarli perché la regina segue il proprio colore
+        if (playerColor.equals(Piece.Color.WHITE))
+        {
+            this.chessBoard[7][3] = new Piece(Piece.Name.QUEEN, this.opponentColor);
+            this.chessBoard[7][4] = new Piece(Piece.Name.KING, this.opponentColor);
         }
+        else if (opponentColor.equals(Piece.Color.WHITE))
+        {
+            this.chessBoard[7][3] = new Piece(Piece.Name.KING, this.opponentColor);
+            this.chessBoard[7][4] = new Piece(Piece.Name.QUEEN, this.opponentColor);
+        }
+        
+        this.chessBoard[0][0] = new Piece(Piece.Name.ROOK, this.opponentColor);
+        this.chessBoard[0][1] = new Piece(Piece.Name.KNIGHT, this.opponentColor);
+        this.chessBoard[0][2] = new Piece(Piece.Name.BISHOP, this.opponentColor);
+        this.chessBoard[0][5] = new Piece(Piece.Name.BISHOP, this.opponentColor);
+        this.chessBoard[0][6] = new Piece(Piece.Name.KNIGHT, this.opponentColor);
+        this.chessBoard[0][7] = new Piece(Piece.Name.ROOK, this.opponentColor);
+        // il re e la regine devo controllare prima di posizionarli perché la regina segue il proprio colore
+        if (opponentColor.equals(Piece.Color.BLACK))
+        {
+            this.chessBoard[0][3] = new Piece(Piece.Name.QUEEN, this.opponentColor);
+            this.chessBoard[0][4] = new Piece(Piece.Name.KING, this.opponentColor);
+        }
+        else if (playerColor.equals(Piece.Color.BLACK))
+        {
+            this.chessBoard[0][3] = new Piece(Piece.Name.KING, this.opponentColor);
+            this.chessBoard[0][4] = new Piece(Piece.Name.QUEEN, this.opponentColor);
+        }
+
         // all pawns
         for (int j = 0; j < COLUMN; j++) {
-            this.chessBoard[1][j] = new Piece(Piece.Name.PAWN, oppositeColor);
+            this.chessBoard[1][j] = new Piece(Piece.Name.PAWN, opponentColor);
             this.chessBoard[6][j] = new Piece(Piece.Name.PAWN, playerColor);
         }
     }
@@ -53,6 +85,8 @@ public class Chess {
             return false;
         // poi eseguo tutti i controlli sulla posizione di arrivo
 
+        chessBoard[rEnd][cEnd] = piece;
+        chessBoard[rStart][cStart] = new Piece();
 
         return true;
     }

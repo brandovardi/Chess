@@ -4,8 +4,6 @@
 #include <string>
 #include <regex> // per controllare il nome del pezzo
 
-#include "Chessboard.h"
-
 using namespace std;
 
 const string IMG_PATH = "images/";
@@ -52,6 +50,7 @@ public:
 	// controllo se due pezzi sono uguali
 	bool ugualeA(Piece _p) { return (this->riga == _p.riga && this->colonna == _p.colonna && this->nome == _p.nome); }
 	// setters
+	void setNome(string val) { this->nome = val; }
 	void setRiga(int val) { this->riga = val; }
 	void setCol(int val) { this->colonna = val; }
 	void setArrocco(bool val) { this->arrocco = val; }

@@ -13,7 +13,7 @@ string Piece::getServerString()
 {
 	string str = string(nome + ";" + to_string(riga) + ";" + to_string(colonna));
 
-	str.erase(str.find(imgExt));
+	str.erase(str.find(".bmp"));
 
 	return str;
 }

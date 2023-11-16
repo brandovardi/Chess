@@ -317,6 +317,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							{
 								//Arrocca(rDest, cDest + 1);
 								_castling = true;
+								pezzoMosso.setArrocco(true);
 							}
 							// all'opposto controllo le stesse cose per il lato sinistro
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 2].Exist() && !pezzi[rDest][cDest - 2].PrimaMossa()
@@ -324,6 +325,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							{
 								//Arrocca(rDest, cDest - 2);
 								_castling = true;
+								pezzoMosso.setArrocco(true);
 							}
 						}
 						else if (colori[0]._Equal("black_"))
@@ -335,6 +337,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							{
 								//Arrocca(rDest, cDest + 2);
 								_castling = true;
+								pezzoMosso.setArrocco(true);
 							}
 							// all'opposto controllo le stesse cose per il lato sinistro
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 1].Exist() && !pezzi[rDest][cDest - 1].PrimaMossa()
@@ -342,6 +345,7 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							{
 								//Arrocca(rDest, cDest - 1);
 								_castling = true;
+								pezzoMosso.setArrocco(true);
 							}
 						}
 					}
@@ -1201,6 +1205,8 @@ bool Chessboard::verificaPosizioneKingSM(bool condition, int r_, int c_, Piece p
 	if (condition)
 	{
 		pezzoMangiato = pezzi[r_][c_];
+		pezzoMangiato.setRiga(r_);
+		pezzoMangiato.setCol(c_);
 		if (posConsentitaSM(pezzoMangiato))
 			return false;
 	}
@@ -1346,7 +1352,7 @@ bool Chessboard::ControllaMossa(int mx, int my)
 	return false;
 }
 // metodo per posizionare il pezzo dopo aver ricevuto conferma dal server
-void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client)
+void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 {
 	// quando devo posizionare il pezzo, dal main ricevo la x e la y di dove deve andare messo il pezzo
 	fromXY2RowCol(mx, my, riga, col);
@@ -1400,20 +1406,37 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client)
 	}
 	else if (pezzoMosso.Promuovi())
 	{
-		// ora rimango dentro il ciclo per far scegliere il nuovo pezzo al giocatore
-		while (pezzoMosso.Promuovi())
-			CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
+		// controllo se la mossa è stata fatta dall'avversario
+		if (oppMv)
+		{
+			client->Recieve();
+			// mi aspetto dal server come risposta la pedina che l'utente ha promosso
+			// mi aspetto di ricevere la seguante stringa "nomePezzo" (ex. "queen")
+			string nomePezzo = client->Recieve();
+			pezzoMosso.setNome(colori[1] + nomePezzo + imgExt);
+		}
+		else
+		{
+			// ora rimango dentro il ciclo per far scegliere il nuovo pezzo al giocatore
+			while (pezzoMosso.Promuovi())
+				CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
 
-		string name = pezzi[riga][col].Nome();
-		string messaggio = "OnlyPromoted;" + name.erase(name.find(imgExt)) + ";" + to_string(riga) + ";" + to_string(col);
-		// invio questo messaggio al server per digli quale pezzo ha scelto l'utente dopo la promozione
-		client->Send(messaggio);
+			string name = pezzi[riga][col].Nome();
+			string messaggio = "OnlyPromoted;" + name.erase(name.find(imgExt)) + ";" + to_string(riga) + ";" + to_string(col);
+			// invio questo messaggio al server per digli quale pezzo ha scelto l'utente dopo la promozione
+			client->Send(messaggio);
+		}
 	}
+
+
+	pezzoMosso.setPrimaMossa(true);
+	pezzi[riga][col] = pezzoMosso;
+	pezzi[riga][col].setRiga(riga);
+	pezzi[riga][col].setCol(col);
 
 	// genero i suoni per la mossa effettuata
 	playSound(pezzoMosso.Promuovi(), pezzoMangiato);
 
-	pezzi[riga][col] = pezzoMosso;
 	pezzoMosso = Piece();
 	whiteToMove = !whiteToMove;
 }

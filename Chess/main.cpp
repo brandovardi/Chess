@@ -82,6 +82,14 @@ int main()
 							// (quelle precedentemente salvate)
 							gameBoard.ControllaMossa(mX, mY);
 							posiziona = false;
+							Clear(White);
+							// disegno ogni volta lo sfondo per la scacchiera
+							Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
+							// poi disegno sia le coordinate che i numeri accanto alla scacchiera
+							gameBoard.DisegnaCoordinate();
+							gameBoard.DisegnaPezzi();
+							Present();
+							while (LeftMousePressed()) {}
 							break;
 						}
 
@@ -123,7 +131,7 @@ int main()
 
 			r = stoi(str.at(3)), c = stoi(str.at(4));
 			gameBoard.fromRowCol2XY(r, c, x, y);
-			gameBoard.PosizionaPezzo(x, y);
+			gameBoard.PosizionaPezzo(x, y, &client, true);
 		}
 
 		Present();

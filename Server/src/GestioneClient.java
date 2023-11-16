@@ -49,9 +49,9 @@ public class GestioneClient implements Runnable {
                         cEnd = Integer.parseInt(attributes[4]);
 
                         Piece piece = game.PieceFromString(name, color);
-                        if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
+                        // if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
 
-                        }
+                        // }
 
                         serverResponse = "OK" + ";" + rStart + ";" + cStart + ";" + rEnd + ";" + cEnd;
                     }

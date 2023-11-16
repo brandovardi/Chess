@@ -56,7 +56,7 @@ public:
 	bool ReSottoScacco(Piece king);
 	bool ControllaScacco();
 	bool ControllaMossa(int _mX, int _mY);
-	void PosizionaPezzo(int mx, int my, ClientTCP* client = nullptr);
+	void PosizionaPezzo(int mx, int my, ClientTCP* client = nullptr, bool oppMv = false);
 	void CambiaPedina(int _mX, int _mY, bool _mPressed);
 	bool ArroccoDxVuoto(Piece pMoved);
 	bool ArroccoSxVuoto(Piece pMoved);
