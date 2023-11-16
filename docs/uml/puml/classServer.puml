@@ -1,0 +1,53 @@
+@startuml classServer
+
+package "Server (Java)"{
+  class Chess {
+    -- Costanti --
+    ROW: int
+    COLUMN: int
+
+    -- Attributi Privati --
+    - chessBoard: Piece[][]
+    - playerColor: Piece.Color
+    - oppositeColor: Piece.Color
+    - whiteToMove: boolean
+
+    -- Metodi Pubblici --
+    {method} + Chess(color: String)
+    {method} + CheckPieceMove(piece: Piece, rStart: int, cStart: int, rEnd: int, cEnd: int): boolean
+    {method} + PieceFromString(name: String, color: String): Piece
+  }
+
+  class GestioneClient{
+    -- Attributi Privati --
+    - clientSocket: Socket
+    - opponentSocket: Socket
+    - color: String
+
+    -- Metodi Pubblici --
+    {method} + GestioneClient(socket: Socket, color: String)
+    {method} + SetOpponentSocket(opponent: Socket): void
+    {method} + run(): void
+  }
+
+  class Piece2 {
+    -- Enumerazioni --
+    Name: enum
+    Color: enum
+
+    -- Attributi privati --
+    - name: Name
+    - color: Color
+
+    -- Metodi Pubblici --
+    {method} + Piece()
+    {method} + Piece(name: Name, color: Color)
+    {method} + isEqual(p2: Piece): boolean
+    {method} + getName(): Name
+    {method} + getColor(): Color
+    {method} + setName(name: Name): void
+    {method} + setColor(color: Color): void
+  }
+}
+
+@enduml

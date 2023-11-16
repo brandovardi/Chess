@@ -1,0 +1,120 @@
+@startuml classClient
+
+package "Client (C++)"{
+  class Chessboard {
+    -- Costanti Globali --
+    ROW: int
+    COLUMN: int
+    CELL_HEIGHT: int
+    CELL_WIDTH: int
+    X_START_CB: int
+    Y_START_CB: int
+    MAX_COLORI: int
+    imgExt: string
+    sndExt: string
+    SND_PATH: string
+    EatColor: Color
+
+    -- Attributi Privati --
+    - pezzi: Piece[ROW][COLUMN]
+    - pezzoMosso: Piece
+    - reSottoScacco: Piece
+    - whiteToMove: bool
+    - arroccoTmp: bool
+    - enPassantTmp: bool
+    - twoFAenPass: bool
+    - riga: int
+    - col: int
+    - x: int
+    - y: int
+    - colori: string[MAX_COLORI]
+    - lastMove: string
+
+    -- Metodi Pubblici --
+    {method} + Chessboard(firstColor: string = "white")
+    {method} + DisegnaCoordinate(): void
+    {method} + DisegnaPezzi(): void
+    {method} + PezzoCliccato(_mX: int, _mY: int, trigger: bool = false): bool
+    {method} + DisegnaInMovimento(_moveX: int, _moveY: int, drag: bool = false): void
+    {method} + ControllaPezzi(_r: int, _c: int, pMoved: Piece&): bool
+    {method} + Arrocca(r1: int, c1: int): void
+    {method} + ReSottoScacco(king: Piece): bool
+    {method} + ControllaScacco(): bool
+    {method} + PosizionaPezzo(_mX: int, _mY: int): bool
+    {method} + CambiaPedina(_mX: int, _mY: int, _mPressed: bool): void
+    {method} + ArroccoDxVuoto(pMoved: Piece): bool
+    {method} + ArroccoSxVuoto(pMoved: Piece): bool
+    {method} + ArroccoSenzaScacco(piece: Piece, toC: int): bool
+    {method} + resetPezzo(): void
+    {method} + playSound(promoted: bool, eatenPiece: Piece): void
+    {method} + ScaccoMatto(): bool
+    {method} + Stallo(): bool
+    {method} + verificaMosseSM(stallo: bool = false): bool
+    {method} + MateFunction(re: Piece = Piece()): bool
+    {method} + SpostaPezzoSM(pezzo: Piece, r_: int, c_: int): bool
+    {method} + performEPforCM(pedina: Piece, r_: int, c_: int, parteBassa: bool): bool
+    {method} + EnPassant(r: int, c: int, color: string): bool
+    {method} + getLastMove(): string
+    {method} + ToLowerStr(str: string&): string
+  }
+
+  class ClientTCP {
+    -- Costanti Globali --
+    BUFLEN: int
+    PORT: int
+    SERVER: string
+
+    -- Attributi Privati --
+    - iResult: int
+    - data: WSADATA
+    - clientSocket: SOCKET
+    - serverAddr: sockaddr_in
+
+    -- Metodi Pubblici --
+    {method} + ClientTCP()
+    {method} + CreateSocketConnectServer(): bool
+    {method} + Send(mess: string): bool
+    {method} + Recieve(): string
+    {method} + Close(): void
+  }
+
+  class Piece {
+    -- Costanti Globali --
+    IMG_PATH: string
+
+    -- Attributi Privati --
+    - nome: string
+    - riga: int
+    - colonna: int
+    - arrocco: bool
+    - primaMossa: bool
+    - promuovi: bool
+    - enPassant: bool
+
+    -- Metodi Pubblici --
+    {method} + Piece()
+    {method} + Piece(r: int, c: int)
+    {method} + Piece(n: string, r: int, c: int, fm: bool = false, castling: bool = false, promoting: bool = false, enPassant: bool = false)
+    {method} + ~Piece()
+    {method} + ugualeA(p: Piece): bool
+    {method} + setRiga(val: int): void
+    {method} + setCol(val: int): void
+    {method} + setArrocco(val: bool): void
+    {method} + setPrimaMossa(val: bool): void
+    {method} + setPromuovi(val: bool): void
+    {method} + setEnPassant(val: bool): void
+    {method} + Nome(): string
+    {method} + Riga(): int
+    {method} + Col(): int
+    {method} + Arrocco(): bool
+    {method} + PrimaMossa(): bool
+    {method} + Promuovi(): bool
+    {method} + EnPassant(): bool
+    {method} + Is(piece: string): bool
+    {method} + Exist(): bool
+    {method} + getServerString(): string
+    {method} + boolToString(valore: bool): string
+  }
+}
+
+@enduml

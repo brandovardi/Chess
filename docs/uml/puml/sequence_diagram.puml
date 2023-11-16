@@ -1,0 +1,53 @@
+@startuml sequence_diagram
+!pragma teoz true
+
+title Scacchi sequence-diagram
+
+participant ClientBianco as CB
+participant Server as S
+participant ClientNero as CN
+
+'connessione tra client bianco e server
+CB -> S: Connessione
+activate S
+S -> CB: Attendi la connessione dell'altro giocatore
+
+'connessione tra cliente nero e server
+CN -> S: Connessione
+S -> CB: Giocatori connessi, inizio partita 
+&S -> CN: Giocatori connessi, inizio partita
+
+'bianco muove la prima mossa ed è valida
+CB -> S: mossa 1
+S -> S: controllo validità mossa 1
+S -> CB: mossa valida
+S -> CN: notifica mossa 1 fatta dal ClientBianco
+
+'nero muove la seconda mossa ed è valida
+CN -> S: mossa 2
+S -> S: controllo validità mossa 2
+S -> CN: mossa valida
+S -> CB: notifica mossa 2 fatta dal ClientNero
+
+'bianco muove la terza mossa ma non è valida, quindi invia la quarta che sarà valida
+CB -> S: mossa 3
+S -> S: controllo validità mossa 3
+S -> CB: mossa non valida
+CB -> S: mossa 4
+S -> S: controllo validità mossa 4
+S -> CB: mossa valida
+S -> CN: notifica mossa 4 fatta dal ClientBianco
+
+'nero muove la quinta mossa ed è valida
+CN -> S: mossa 5
+S -> S: controllo validità mossa 5
+S -> CN: mossa valida
+S -> CB: notifica mossa 5 fatta dal ClientNero
+
+
+'il nero vince la partita
+S -> CB: il ClientNero vince la partita
+&S -> CN: il ClientNero vince la partita
+deactivate S
+
+@enduml

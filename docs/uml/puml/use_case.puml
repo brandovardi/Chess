@@ -1,0 +1,33 @@
+@startuml use_case
+
+left to right direction
+
+actor Server as S
+actor ClientBianco as CB
+actor ClientNero as CN
+
+
+CB --> S: si collega con
+CN --> S: si collega con
+
+' rectangle "Gioco scacchi" as giocoscacchi
+' S --> giocoscacchi: gestisce
+
+package "Casi d'uso Client" as casiC{
+    usecase "Muovere un pezzo" as muovere
+}
+
+CB -> muovere
+CN -> muovere
+
+package "Casi d'uso Server" as casiS{
+    usecase "Controlla validità mossa" as controlla
+    usecase "Notifica la mossa fatta \nda un client all'altro" as notifica
+    usecase "Controlla chi vince" as vince
+}
+
+S --> controlla
+S --> notifica
+S --> vince
+
+@enduml
