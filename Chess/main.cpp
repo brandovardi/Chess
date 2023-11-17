@@ -17,6 +17,7 @@
 
 vector<string> split(const string& s, char delimiter);
 bool CheckServerConnection(ClientTCP& server, string colore);
+void DrawDefault(Chessboard& game);
 
 // main code
 int main()
@@ -43,13 +44,7 @@ int main()
 	bool posiziona = true;
 	while (!exit)
 	{
-		// "pulisco" lo schermo
-		Clear(White);
-		// disegno ogni volta lo sfondo per la scacchiera
-		Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
-		// poi disegno sia le coordinate che i numeri accanto alla scacchiera
-		gameBoard.DisegnaCoordinate();
-		gameBoard.DisegnaPezzi();
+		DrawDefault(gameBoard);
 
 		if ((gameBoard.WhiteToMove() && colore._Equal("white"))
 			|| (!gameBoard.WhiteToMove() && colore._Equal("black")))
@@ -65,12 +60,7 @@ int main()
 					// disegno il pezzo cliccato in movimento mentre tiene premuto il mouse
 					while (LeftMousePressed())
 					{
-						Clear(White);
-						// disegno ogni volta lo sfondo per la scacchiera
-						Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
-						// poi disegno sia le coordinate che i numeri accanto alla scacchiera
-						gameBoard.DisegnaCoordinate();
-						gameBoard.DisegnaPezzi();
+						DrawDefault(gameBoard);
 
 						gameBoard.DisegnaInMovimento(MouseX(), MouseY(), true);
 
@@ -104,7 +94,7 @@ int main()
 						if (gameBoard.ControllaMossa(mX, mY))
 						{
 							client.Send(gameBoard.getLastMove());
-							string response = client.Recieve();
+							string response = client.RecieveCorrectData();
 							vector<string> str = split(response, ';');
 							if (str.at(0) == "OK")
 							{
@@ -120,8 +110,7 @@ int main()
 		else
 		{
 			Present();
-			client.Recieve(); // leggo prima l'invio
-			opponentMove = client.Recieve();
+			opponentMove = client.RecieveCorrectData();
 			vector<string> str = split(opponentMove, ';');
 
 			int rS = stoi(str.at(1)), cS = stoi(str.at(2)); // rstart, cstart
@@ -160,6 +149,17 @@ int main()
 	return 0;
 }
 
+void DrawDefault(Chessboard& game)
+{
+	// "pulisco" lo schermo
+	Clear(White);
+	// disegno ogni volta lo sfondo per la scacchiera
+	Draw(IMG_PATH + "pattern" + imgExt, 0, 0);
+	// poi disegno sia le coordinate che i numeri accanto alla scacchiera
+	game.DisegnaCoordinate();
+	game.DisegnaPezzi();
+}
+
 bool CheckServerConnection(ClientTCP& server, string colore)
 {
 	Clear(White);
@@ -178,7 +178,7 @@ bool CheckServerConnection(ClientTCP& server, string colore)
 	// invio al server il colore che ho selezionato
 	server.Send(colore);
 	// attendo quindi la risposta del server per poter iniziare (in attesa di un'altro client)
-	while (!server.Recieve()._Equal("start")) {}
+	while (!server.RecieveCorrectData()._Equal("start")) {}
 
 	return true;
 }

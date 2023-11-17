@@ -22,7 +22,7 @@ public class GestioneClient implements Runnable {
             BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outputServer = new DataOutputStream(clientSocket.getOutputStream());
 
-            String clientMessage = "\n" + "start";
+            String clientMessage = "start";
             Thread.sleep(1000);
             // la prima volta invio al client che è connesso un'altro utente per poter
             // iniziare la partita
@@ -67,7 +67,7 @@ public class GestioneClient implements Runnable {
                 Posizione p2 = new Posizione(rEnd, cEnd);
                 Posizione pp2 = game.calcolaCoordinateOpposte(p2);
 
-                serverResponse = "\nOK" + ";" + pp1.riga + ";" + pp1.colonna + ";" + pp2.riga + ";" + pp2.colonna;
+                serverResponse = "OK" + ";" + pp1.riga + ";" + pp1.colonna + ";" + pp2.riga + ";" + pp2.colonna;
                 // invio i dati all'avversario se la mossa è corretta
                 outOpponent.writeBytes(serverResponse);
             }

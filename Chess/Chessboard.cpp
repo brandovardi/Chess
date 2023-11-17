@@ -151,22 +151,19 @@ bool Chessboard::PezzoCliccato(int mx, int my, bool trigger)
 void Chessboard::DisegnaInMovimento(int mx, int my, bool drag)
 {
 	// con questo thread disegno tutte le possibili mosse che può fare il pezzo in movimento
-	thread t(&Chessboard::DisegnaMosseDisponibili, this);
+	DisegnaMosseDisponibili();
 	if (!drag)
 	{
 		fromRowCol2XY(pezzoMosso.Riga(), pezzoMosso.Col(), x, y);
 		Draw(IMG_PATH + pezzoMosso.Nome(), x, y);
-		t.join();
 		return;
 	}
 	// disegno il contorno sulla cella dove si trova il mouse
 	fromXY2RowCol(mx, my, riga, col);
 	fromRowCol2XY(riga, col, x, y);
-	{ // disegno il rettangolo bianco
-		DrawRectangle(x, y, CELL_WIDTH, CELL_HEIGHT, MakeColor(229, 229, 229), false);
-		DrawRectangle(x + 1, y + 1, CELL_WIDTH - 2, CELL_HEIGHT - 2, MakeColor(229, 229, 229), false);
-	}
-	t.join();
+	// disegno il rettangolo bianco
+	DrawRectangle(x, y, CELL_WIDTH, CELL_HEIGHT, MakeColor(229, 229, 229), false);
+	DrawRectangle(x + 1, y + 1, CELL_WIDTH - 2, CELL_HEIGHT - 2, MakeColor(229, 229, 229), false);
 	Draw(IMG_PATH + pezzoMosso.Nome(), mx - CELL_WIDTH / 2, my - CELL_HEIGHT / 2);
 }
 // controllo che il pezzo possa essere spostato nella posizione desiderata
@@ -437,6 +434,37 @@ bool Chessboard::performEnPassant(int r, int c, string color)
 	}
 	twoFAenPass = false;
 	enPassantTmp = false;
+	return false;
+}
+// metodo per "simulare" l'en passant
+bool Chessboard::simulateEnPassant(Piece pedinaMossa, int r_, int c_, bool parteBassa)
+{
+	// la r_ e la c_ sono la riga e la colonna d'arrivo della pedina mossa
+	bool destra = pezzi[r_][c_ + 1].EnPassant();
+	int rowNum = (parteBassa ? 1 : -1);
+	int colNum = (destra ? 1 : -1);
+	// vado a prendere la pedina avversaria
+	Piece opponentPawn = pezzi[r_ + rowNum][c_];
+	// mi salvo la pedina che ho mosso io
+	Piece pawn = pedinaMossa;
+	// sposto il pezzo
+	pezzi[r_][c_] = pedinaMossa;
+	// aggiorno riga e colonna dopo averlo spostato
+	pezzi[r_][c_].setRiga(r_);
+	pezzi[r_][c_].setCol(c_);
+	// infine rimuovo la pedina che dovrei mangiare facendo l'en passant
+	pezzi[r_ + rowNum][c_] = Piece(r_ + rowNum, c_);
+	// poi rimetto tutto a posto
+	if (ControllaScacco())
+	{
+		pezzi[r_][c_] = Piece(r_, c_);
+		pezzi[r_ + rowNum][c_] = opponentPawn;
+		pezzi[pawn.Riga()][pawn.Col()] = pawn;
+		return true;
+	}
+	pezzi[r_][c_] = Piece(r_, c_);
+	pezzi[r_ + rowNum][c_] = opponentPawn;
+	pezzi[pawn.Riga()][pawn.Col()] = pawn;
 	return false;
 }
 // vado a controllare, secondo le regole  degli scacchi, se il percorso per effettuare l'arrocco non è "affetto da scacco"
@@ -1149,34 +1177,6 @@ bool Chessboard::MateFunction(Piece re)
 	// se arriva alla fine allora è scacco matto (o stallo, dipende dal metodo chiamante)
 	return true;
 }
-// metodo per "simulare" l'en passant
-bool Chessboard::simulateEnPassant(Piece pedina, int r_, int c_, bool parteBassa)
-{
-	bool destra = pezzi[r_][c_ + 1].EnPassant();
-	int rowNum = (parteBassa ? -1 : 1);
-	int colNum = (destra ? 1 : -1);
-	Piece opponentPawn = pezzi[r_ + rowNum][c_ + colNum];
-	Piece pawn = pedina;
-	// sposto il pezzo
-	pezzi[r_ + rowNum][c_ + colNum] = pedina;
-	// aggiorno riga e colonna dopo averlo spostato
-	pezzi[r_ + rowNum][c_ + colNum].setRiga(r_ + rowNum);
-	pezzi[r_ + rowNum][c_ + colNum].setCol(c_ + colNum);
-	// infine rimuovo la pedina che dovrei mangiare facendo l'en passant
-	pezzi[r_][c_ + colNum] = Piece(r_, c_ + colNum);
-	// poi rimetto tutto a posto
-	if (!ControllaScacco())
-	{
-		pezzi[r_ + rowNum][c_ + colNum] = Piece(r_ + rowNum, c_ + colNum);
-		pezzi[r_][c_ + colNum] = opponentPawn;
-		pezzi[pawn.Riga()][pawn.Col()] = pawn;
-		return true;
-	}
-	pezzi[r_ + rowNum][c_ + colNum] = Piece(r_ + rowNum, c_ + colNum);
-	pezzi[r_][c_ + colNum] = opponentPawn;
-	pezzi[pawn.Riga()][pawn.Col()] = pawn;
-	return false;
-}
 // questo metodo sposta un pezzo nella posizione desiderata verificando se è possibile, controllando lo scacco
 bool Chessboard::SpostaPezzoSM(Piece pezzo, int r_, int c_)
 {
@@ -1410,10 +1410,9 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 		// controllo se la mossa è stata fatta dall'avversario
 		if (oppMv)
 		{
-			client->Recieve();
 			// mi aspetto dal server come risposta la pedina che l'utente ha promosso
 			// mi aspetto di ricevere la seguante stringa "nomePezzo" (ex. "queen")
-			string nomePezzo = client->Recieve();
+			string nomePezzo = client->RecieveCorrectData();
 			pezzoMosso.setNome(colori[1] + nomePezzo + imgExt);
 		}
 		else

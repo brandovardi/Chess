@@ -50,15 +50,23 @@ bool ClientTCP::Send(string mess)
     return true;
 }
 
+string ClientTCP::RecieveCorrectData()
+{
+    string dataRecieved = Recieve();
+    // controllo se ho ricevuto solamente un byte, allora vado a leggere tutto il rest
+    if (dataRecieved.length() == 1)
+        dataRecieved.append(Recieve());
+
+    return dataRecieved;
+}
+
 string ClientTCP::Recieve()
 {
-    // attendo un po' altrimenti il server non fa in tempo a mandarmi tutta la risposta ma ricevo solo gli ultimi bytes
-    Sleep(150);
+    // attendo un minimo per dare il tempo di ricevere tutti i dati correttamente
+    Sleep(5);
     char buffer[BUFLEN] = {};
     iResult = recv(clientSocket, buffer, sizeof(buffer), 0);
     string risposta = buffer;
-    // rimuovo tutti i caratteri nulli alla fine del messaggio
-    //risposta.erase(risposta.find_last_of(" \r\n\t") + 1);
 
     if (iResult > 0)
     {
@@ -80,7 +88,15 @@ void ClientTCP::Close()
 {
     // spengo la connessione (sia per inviare che per ricevere)
     shutdown(clientSocket, SD_BOTH);
-
+    // chiudo la socket
     closesocket(clientSocket);
+    // pulisco il buffer
     WSACleanup();
+    /*
+    * An application or DLL is required to perform a successful WSAStartup call before
+    * it can use Windows Sockets services. When it has completed the use of Windows Sockets,
+    * the application or DLL must call WSACleanup to deregister itself from a Windows Sockets
+    * implementation and allow the implementation to free any resources allocated on behalf
+    * of the application or DLL.
+    */
 }

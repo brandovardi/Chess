@@ -21,7 +21,8 @@ public class Server {
                     BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     firstColor = inputClient.readLine(); // qua leggo il colore che mi invia il client
                     savedPlayer.put(clientSocket, new GestioneClient(clientSocket, firstColor));
-                } else
+                }
+                else
                 { // ora controllo se il secondo client connesso è di colore diverso del primo altrimenti chiudo la connessione
                     BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     secondColor = inputClient.readLine(); // qua leggo il colore che mi invia il client

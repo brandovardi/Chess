@@ -26,6 +26,7 @@ public:
 	ClientTCP();
 	bool CreateSocketConnectServer();
 	bool Send(string mess);
+	string RecieveCorrectData();
 	string Recieve();
 	void Close();
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <thread>
-
 #include "Piece.h"
 #include "ClientTCP.h"
 #include "drawing.h"
