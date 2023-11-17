@@ -3,4 +3,4 @@
 ### Strutura direnctory
 
 - Chess : contiene il client in C++
-- server : contiene il client in Java
+- server : contiene il server in Java
