@@ -1155,7 +1155,7 @@ bool Chessboard::simulateEnPassant(Piece pedina, int r_, int c_, bool parteBassa
 	bool destra = pezzi[r_][c_ + 1].EnPassant();
 	int rowNum = (parteBassa ? -1 : 1);
 	int colNum = (destra ? 1 : -1);
-	Piece opponentPawn = pezzi[r_][c_ + colNum];
+	Piece opponentPawn = pezzi[r_ + rowNum][c_ + colNum];
 	Piece pawn = pedina;
 	// sposto il pezzo
 	pezzi[r_ + rowNum][c_ + colNum] = pedina;
@@ -1363,12 +1363,12 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 	bool parteBassa = (pezzoMosso.Is("white") && colori[0]._Equal("white_"))
 		|| (pezzoMosso.Is("black") && colori[0]._Equal("black_"));
 	// controllo se devo effettuare l'enpassant
-	if (pezzoMosso.EnPassant())
+	if (pezzoMosso.Is("pawn") && (!pezzi[riga][col].Exist() && riga != pezzoMosso.Riga() && col != pezzoMosso.Col()))
 	{
 		performEnPassant(riga, col, (parteBassa ? colori[0] : colori[1]));
 	}
 	// controllo se devo arroccare
-	else if (pezzoMosso.Arrocco())
+	else if (pezzoMosso.Is("king") && riga == pezzoMosso.Riga() && (col == pezzoMosso.Col() + 2 || col == pezzoMosso.Col() - 2))
 	{
 		// controllo da che parte devo arroccare
 		if (colori[0]._Equal("white_"))
@@ -1404,7 +1404,8 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 			}
 		}
 	}
-	else if (pezzoMosso.Promuovi())
+	// controllo se devo promuovere un pedone
+	else if (pezzoMosso.Is("pawn") && (pezzoMosso.Riga() == ROW - 1 || pezzoMosso.Riga() == 0))
 	{
 		// controllo se la mossa è stata fatta dall'avversario
 		if (oppMv)
@@ -1427,7 +1428,6 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 			client->Send(messaggio);
 		}
 	}
-
 
 	pezzoMosso.setPrimaMossa(true);
 	pezzi[riga][col] = pezzoMosso;

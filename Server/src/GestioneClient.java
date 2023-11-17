@@ -22,7 +22,6 @@ public class GestioneClient implements Runnable {
             BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outputServer = new DataOutputStream(clientSocket.getOutputStream());
 
-
             String clientMessage = "\n" + "start";
             Thread.sleep(1000);
             // la prima volta invio al client che è connesso un'altro utente per poter
@@ -57,7 +56,6 @@ public class GestioneClient implements Runnable {
                     }
                 }
 
-                // serverResponse = "MoveOk";
                 // invia la conferma al client che ha fatto la mossa
                 outputServer.writeBytes(serverResponse);
 

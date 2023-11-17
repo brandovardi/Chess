@@ -124,13 +124,17 @@ int main()
 			opponentMove = client.Recieve();
 			vector<string> str = split(opponentMove, ';');
 
-			int r = stoi(str.at(1)), c = stoi(str.at(2));
+			int rS = stoi(str.at(1)), cS = stoi(str.at(2)); // rstart, cstart
 			int x = 0, y = 0;
-			gameBoard.fromRowCol2XY(r, c, x, y);
+			// seleziono il pezzo nella scacchiera
+			gameBoard.fromRowCol2XY(rS, cS, x, y);
 			gameBoard.PezzoCliccato(x, y);
 
-			r = stoi(str.at(3)), c = stoi(str.at(4));
-			gameBoard.fromRowCol2XY(r, c, x, y);
+			int rE = stoi(str.at(3)), cE = stoi(str.at(4)); // rend, cend
+			gameBoard.fromRowCol2XY(rE, cE, x, y);
+			// lo controllo per poter assegnargli i valori corretti
+			gameBoard.ControllaMossa(x, y);
+			// poi lo sposto
 			gameBoard.PosizionaPezzo(x, y, &client, true);
 		}
 
