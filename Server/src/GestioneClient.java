@@ -5,19 +5,35 @@ public class GestioneClient implements Runnable {
     private Socket clientSocket;
     private Socket opponentSocket;
     private String color;
+    private Chess game;
+
+    public GestioneClient() {
+        this.clientSocket = null;
+        this.opponentSocket = null;
+        this.color = null;
+        this.game = null;
+    }
 
     public GestioneClient(Socket socket, String color) {
         this.clientSocket = socket;
+        this.opponentSocket = null;
         this.color = color;
+        this.game = new Chess(null);
     }
 
     public void SetOpponentSocket(Socket opponent) {
         this.opponentSocket = opponent;
     }
+    
+    public void SetGame(Chess game) {
+        synchronized (this.game)
+        {
+            this.game = game;
+        }
+    }
 
     public void run() {
         try {
-            Chess game = new Chess(color);
 
             BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outputServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -47,10 +63,13 @@ public class GestioneClient implements Runnable {
                         rEnd = Integer.parseInt(attributes[3]);
                         cEnd = Integer.parseInt(attributes[4]);
 
-                        Piece piece = game.PieceFromString(name, color);
-                        // if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
+                        synchronized (this.game)
+                        {
+                            Piece piece = this.game.PieceFromString(name, color);
+                            // if (piece != null && game.CheckPieceMove(piece, rStart, cStart, rEnd, cEnd)) {
 
-                        // }
+                            // }
+                        }
 
                         serverResponse = "OK" + ";" + rStart + ";" + cStart + ";" + rEnd + ";" + cEnd;
                     }
@@ -62,10 +81,10 @@ public class GestioneClient implements Runnable {
                 // dati da inviare all'avversario nel caso la mossa è corretta
                 DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
                 Posizione p1 = new Posizione(rStart, cStart);
-                Posizione pp1 = game.calcolaCoordinateOpposte(p1);
+                Posizione pp1 = this.game.calcolaCoordinateOpposte(p1);
 
                 Posizione p2 = new Posizione(rEnd, cEnd);
-                Posizione pp2 = game.calcolaCoordinateOpposte(p2);
+                Posizione pp2 = this.game.calcolaCoordinateOpposte(p2);
 
                 serverResponse = "OK" + ";" + pp1.riga + ";" + pp1.colonna + ";" + pp2.riga + ";" + pp2.colonna;
                 // invio i dati all'avversario se la mossa è corretta

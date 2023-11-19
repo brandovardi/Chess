@@ -35,6 +35,8 @@ public class Server {
                     }
                 }
             }
+            // creo un campo generale per tutti e due i client
+            Chess game = new Chess(null);
 
             boolean count = false;
             // per ogni giocatore connesso avvio il proprio thread
@@ -44,6 +46,7 @@ public class Server {
                 for (Socket sock : savedPlayer.keySet()) {
                     if (count) {
                         g.SetOpponentSocket(sock);
+                        g.SetGame(game);
                         break;
                     }
                     count = true;
