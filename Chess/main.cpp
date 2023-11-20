@@ -165,7 +165,7 @@ int main()
 	{
 		if (vincitore._Equal("white"))
 			DrawString(Width / 2, 0, "Vince il Bianco", "Century", 30, Black, true);
-		else if (vincitore._Equal("balck"))
+		else if (vincitore._Equal("black"))
 			DrawString(Width / 2, 0, "Vince il Nero", "Century", 30, Black, true);
 	}
 	else if (stallo)
