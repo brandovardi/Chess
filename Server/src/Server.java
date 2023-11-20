@@ -36,7 +36,7 @@ public class Server {
                 }
             }
             // creo un campo generale per tutti e due i client
-            Chess game = new Chess(null);
+            Chess game = new Chess();
 
             boolean count = false;
             // per ogni giocatore connesso avvio il proprio thread
