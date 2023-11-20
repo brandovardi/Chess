@@ -1,21 +1,17 @@
 /*
 * fonte per la connessione client-server (UDP):
 * https://gist.github.com/sunmeat/02b60c8a3eaef3b8a0fb3c249d8686fd
-* 
+*
 * fonte per la riproduzione dell'audio:
 * https://www.youtube.com/watch?v=sbn-7WwXMvo
-* 
+*
 * libreria drawing.h:
 * https://github.com/npiegdon/immediate2d
 */
 
-// split
-#include <sstream>
-#include <vector>
-
 #include "StartGame.h"
+#include "Message.h"
 
-vector<string> split(const string& s, char delimiter);
 bool CheckServerConnection(ClientTCP& server, string colore);
 void DrawDefault(Chessboard& game);
 
@@ -41,7 +37,7 @@ int main()
 	// genero il suono per l'inizio della partita
 	sndPlaySound(L"sounds/game-start.wav", SND_ASYNC);
 	// loop per rimanere all'interno del gioco
-	bool posiziona = true;
+	bool posiziona = true, matto = false, stallo = false;
 	while (!exit)
 	{
 		DrawDefault(gameBoard);
@@ -95,10 +91,21 @@ int main()
 						{
 							client.Send(gameBoard.getLastMove());
 							string response = client.RecieveCorrectData();
-							vector<string> str = split(response, ';');
+							vector<string> str = Message::split(response, ';');
 							if (str.at(0) == "OK")
 							{
-								gameBoard.PosizionaPezzo(mX, mY, &client);
+								gameBoard.PosizionaPezzo(mX, mY, client);
+							}
+							else if (str.at(0)._Equal("Checkmate"))
+							{
+								matto = true;
+								vincitore = str.at(1);
+								exit = true;
+							}
+							else if (str.at(0)._Equal("Stealmate"))
+							{
+								stallo = true;
+								exit = true;
 							}
 						}
 					}
@@ -111,33 +118,60 @@ int main()
 		{
 			Present();
 			opponentMove = client.RecieveCorrectData();
-			vector<string> str = split(opponentMove, ';');
+			vector<string> str = Message::split(opponentMove, ';');
 
-			int rS = stoi(str.at(1)), cS = stoi(str.at(2)); // rstart, cstart
-			int x = 0, y = 0;
-			// seleziono il pezzo nella scacchiera
-			gameBoard.fromRowCol2XY(rS, cS, x, y);
-			gameBoard.PezzoCliccato(x, y);
+			if (str.at(0)._Equal("OK"))
+			{
+				int x = 0, y = 0;
+				int rS = stoi(str.at(1)), cS = stoi(str.at(2)); // rstart, cstart
+				// seleziono il pezzo nella scacchiera
+				gameBoard.fromRowCol2XY(rS, cS, x, y);
+				gameBoard.PezzoCliccato(x, y);
 
-			int rE = stoi(str.at(3)), cE = stoi(str.at(4)); // rend, cend
-			gameBoard.fromRowCol2XY(rE, cE, x, y);
-			// lo controllo per poter assegnargli i valori corretti
-			gameBoard.ControllaMossa(x, y);
-			// poi lo sposto
-			gameBoard.PosizionaPezzo(x, y, &client, true);
+				int rE = stoi(str.at(3)), cE = stoi(str.at(4)); // rend, cend
+				gameBoard.fromRowCol2XY(rE, cE, x, y);
+				// lo controllo per poter assegnargli i valori corretti
+				gameBoard.ControllaMossa(x, y);
+				// poi lo sposto
+				gameBoard.PosizionaPezzo(x, y, client);
+			}
+			else if (str.at(0)._Equal("Checkmate"))
+			{
+				matto = true;
+				vincitore = str.at(1);
+				exit = true;
+			}
+			else if (str.at(0)._Equal("Stealmate"))
+			{
+				stallo = true;
+				exit = true;
+			}
+			// altrimenti sto promuovendo un pedone
+			else
+			{
+				// sposto il pezzo promosso
+				gameBoard.PosizionaPezzo(0, 0, client, true, opponentMove);
+			}
+
 		}
 
 		Present();
 	}
 
 	sndPlaySound(L"sounds/game-end.wav", SND_ASYNC);
-
 	// "pulisco" lo schermo
 	Clear(White);
-	if (vincitore._Equal("whiteWin"))
-		DrawString(Width / 2, 0, "Vince il Bianco", "Century", 30, Black, true);
-	else if (vincitore._Equal("blackWin"))
-		DrawString(Width / 2, 0, "Vince il Nero", "Century", 30, Black, true);
+	if (matto)
+	{
+		if (vincitore._Equal("white"))
+			DrawString(Width / 2, 0, "Vince il Bianco", "Century", 30, Black, true);
+		else if (vincitore._Equal("balck"))
+			DrawString(Width / 2, 0, "Vince il Nero", "Century", 30, Black, true);
+	}
+	else if (stallo)
+	{
+		DrawString(Width / 2, 0, "Stallo\n(pareggio)", "Century", 30, Black, true);
+	}
 	Present();
 	Wait(3000);
 	// chiudo la connessione con il server (quindi chiudo la socket)
@@ -181,15 +215,4 @@ bool CheckServerConnection(ClientTCP& server, string colore)
 	while (!server.RecieveCorrectData()._Equal("start")) {}
 
 	return true;
-}
-
-vector<string> split(const string& s, char car) {
-	vector<string> splitted = {};
-	istringstream startStr(s);
-	string element = "";
-
-	while (getline(startStr, element, car))
-		splitted.push_back(element);
-
-	return splitted;
 }

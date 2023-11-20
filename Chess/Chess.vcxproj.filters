@@ -33,6 +33,9 @@
     <ClCompile Include="StartGame.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="Message.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="drawing.h">
@@ -48,6 +51,9 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="StartGame.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Message.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>

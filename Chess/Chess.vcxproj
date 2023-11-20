@@ -130,6 +130,7 @@
     <ClCompile Include="Chessboard.cpp" />
     <ClCompile Include="drawing.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Message.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="ClientTCP.cpp" />
     <ClCompile Include="StartGame.cpp" />
@@ -137,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="Chessboard.h" />
     <ClInclude Include="drawing.h" />
+    <ClInclude Include="Message.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="ClientTCP.h" />
     <ClInclude Include="StartGame.h" />

@@ -32,9 +32,9 @@ public class GestioneClient implements Runnable {
         }
     }
 
-    public void SendMoveToOpponent(int rstart, int cstart, int rend, int cend, String namePromoted) throws IOException
+    public void SendMoveToOpponent(int rstart, int cstart, int rend, int cend, String namePromoted, String endMatch) throws IOException
     {
-        String rispostaServer = "";
+        String rispostaServer = (endMatch != null ? endMatch : "");
         // dati da inviare all'avversario nel caso la mossa è corretta
         DataOutputStream outOpponent = new DataOutputStream(opponentSocket.getOutputStream());
         Posizione p1 = new Posizione(rstart, cstart);
@@ -43,13 +43,18 @@ public class GestioneClient implements Runnable {
         Posizione p2 = new Posizione(rend, cend);
         Posizione pp2 = this.game.calcolaCoordinateOpposte(p2);
 
+        if (!rispostaServer.equals(""))
+        {
+            outOpponent.writeBytes(rispostaServer);
+            return;
+        }
         // mi salvo la mossa con le coordinate del pezzo
         rispostaServer = pp1.riga + ";" + pp1.colonna + ";" + pp2.riga + ";" + pp2.colonna;
 
         if (namePromoted.equals(""))
             rispostaServer = "OK;" + rispostaServer;
         else
-            rispostaServer = namePromoted + rispostaServer;
+            rispostaServer = namePromoted + ";"+ rispostaServer;
 
         // invio i dati all'avversario se la mossa è corretta
         outOpponent.writeBytes(rispostaServer);
@@ -57,6 +62,7 @@ public class GestioneClient implements Runnable {
 
     public void run() {
         try {
+            boolean endMatch = false;
 
             BufferedReader inputClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataOutputStream outputServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -124,10 +130,23 @@ public class GestioneClient implements Runnable {
                                 // invia la conferma al client che ha fatto la mossa
                                 outputServer.writeBytes(serverResponse);
                                 
-                                this.SendMoveToOpponent(rStart, cStart, rEnd, cEnd, attributes[0]);
+                                this.SendMoveToOpponent(rStart, cStart, rEnd, cEnd, attributes[0], null);
                                 // esco da questo ciclo
                                 break;
                             }
+                        }
+                        else if (splitMessage[1].equals("Checkmate"))
+                        {
+                            if (clientMessage.contains("white"))
+                                serverResponse = "Checkmate;white";
+                            else if (clientMessage.contains("black"))
+                                serverResponse = "Checkmate;black";
+                            endMatch = true;
+                        }
+                        else if (splitMessage[1].equals("Stealmate"))
+                        {
+                            serverResponse = "Stealmate;";
+                            endMatch = true;
                         }
                     }
                 }
@@ -135,7 +154,7 @@ public class GestioneClient implements Runnable {
                 // invia la conferma al client che ha fatto la mossa
                 outputServer.writeBytes(serverResponse);
 
-                this.SendMoveToOpponent(rStart, cStart, rEnd, cEnd, "");
+                this.SendMoveToOpponent(rStart, cStart, rEnd, cEnd, "", (endMatch ? serverResponse : null));
             }
 
             // Se il client chiude la connessione, esci dal loop

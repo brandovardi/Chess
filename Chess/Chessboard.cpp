@@ -136,7 +136,7 @@ bool Chessboard::PezzoCliccato(int mx, int my, bool trigger)
 		* questo controllo serve per verificare che il pezzo cliccato esista effettivamente, e controllo anche
 		* se al turno del bianco è stato selezionato un pezzo bianco o vicerversa per il nero
 		*/
-		if (pieceTmp.Exist() && ((whiteToMove && pieceTmp.Is("white") /* && (colori[0]._Equal("white_")) */ ))
+		if (pieceTmp.Exist() && ((whiteToMove && pieceTmp.Is("white") /* && (colori[0]._Equal("white_")) */))
 			|| (!whiteToMove && pieceTmp.Is("black") /*&& (colori[0]._Equal("black_"))*/)) {
 			// rimuovo il pezzo da dove è stato prezo
 			pezzi[riga][col] = Piece(riga, col);
@@ -1270,7 +1270,7 @@ bool Chessboard::ControllaMossa(int mx, int my)
 			bool promosso = false;
 			// una volta superato il controllo vado a posizionare il pezzo mosso dove dovrebbe andare
 			// (anche per poter effettuare gli ultimi controlli)
-			pezzi[riga][col] = Piece(pezzoMosso.Nome(), riga, col, pezzoMosso.PrimaMossa(), pezzoMosso.Arrocco(), 
+			pezzi[riga][col] = Piece(pezzoMosso.Nome(), riga, col, pezzoMosso.PrimaMossa(), pezzoMosso.Arrocco(),
 				pezzoMosso.Promuovi(), pezzoMosso.EnPassant());
 			// vado a controllare se il pezzo deve essere promosso, quindi è una pedina
 			if (pezzoMosso.Promuovi())
@@ -1331,9 +1331,9 @@ bool Chessboard::ControllaMossa(int mx, int my)
 				+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col) + "\t";
 
 			if (!pezzoMosso.Is("king") && ScaccoMatto())
-				lastMove.append("ScaccoMatto");
+				lastMove.append("Checkmate");
 			else if (!pezzoMosso.Is("king") && Stallo())
-				lastMove.append("Stallo");
+				lastMove.append("Stealmate");
 			else if (promosso)
 				lastMove.append("Promoted");
 
@@ -1352,16 +1352,22 @@ bool Chessboard::ControllaMossa(int mx, int my)
 	return false;
 }
 // metodo per posizionare il pezzo dopo aver ricevuto conferma dal server
-void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
+void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP& client, bool promoted, string pieceNameProm)
 {
 	// quando devo posizionare il pezzo, dal main ricevo la x e la y di dove deve andare messo il pezzo
 	fromXY2RowCol(mx, my, riga, col);
-	// rimuovo il pezzo mosso dalla sua posizione originale siccome dopo i controlli lo rimetto al suo posto
-	pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece();
-	Piece pezzoMangiato = pezzi[riga][col];
-	// vado a vedere quale colore si trova nella parte bassa della scacchiera per questo client
-	bool parteBassa = (pezzoMosso.Is("white") && colori[0]._Equal("white_"))
-		|| (pezzoMosso.Is("black") && colori[0]._Equal("black_"));
+	Piece pezzoMangiato = Piece();
+	bool parteBassa = false;
+	if (pieceNameProm._Equal(""))
+	{
+		// rimuovo il pezzo mosso dalla sua posizione originale siccome dopo i controlli lo rimetto al suo posto
+		pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece();
+		pezzoMangiato = pezzi[riga][col];
+		// vado a vedere quale colore si trova nella parte bassa della scacchiera per questo client
+		parteBassa = (pezzoMosso.Is("white") && colori[0]._Equal("white_"))
+			|| (pezzoMosso.Is("black") && colori[0]._Equal("black_"));
+	}
+
 	// controllo se devo effettuare l'enpassant
 	if (pezzoMosso.Is("pawn") && (!pezzi[riga][col].Exist() && riga != pezzoMosso.Riga() && col != pezzoMosso.Col()))
 	{
@@ -1405,15 +1411,25 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 		}
 	}
 	// controllo se devo promuovere un pedone
-	else if (pezzoMosso.Is("pawn") && (pezzoMosso.Riga() == ROW - 1 || pezzoMosso.Riga() == 0))
+	else if ((pezzoMosso.Is("pawn") && (riga == ROW - 1 || riga == 0)) || promoted)
 	{
 		// controllo se la mossa è stata fatta dall'avversario
-		if (oppMv)
+		if (promoted)
 		{
-			// mi aspetto dal server come risposta la pedina che l'utente ha promosso
-			// mi aspetto di ricevere la seguante stringa "nomePezzo" (ex. "queen")
-			string nomePezzo = client->RecieveCorrectData();
-			pezzoMosso.setNome(colori[1] + nomePezzo + imgExt);
+			vector<string> splitted = Message::split(pieceNameProm, ';');
+
+			string nome = splitted.at(0);
+			int rstart = stoi(splitted.at(1));
+			int cstart = stoi(splitted.at(2));
+			int rend = stoi(splitted.at(3));
+			string cTmp(1, splitted.at(4)[0]);
+			int cend = stoi(cTmp);
+			pezzoMosso = Piece(nome.append(imgExt), rstart, cstart, true, false, true, false);
+			riga = rend;
+			col = cend;
+
+			pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece();
+			pezzoMangiato = pezzi[riga][col];
 		}
 		else
 		{
@@ -1422,9 +1438,17 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 				CambiaPedina(MouseX(), MouseY(), LeftMousePressed());
 
 			string name = pezzi[riga][col].Nome();
-			string messaggio = "OnlyPromoted;" + name.erase(name.find(imgExt)) + ";" + to_string(riga) + ";" + to_string(col);
+			string messaggio = name.erase(name.find(imgExt)) + ";" + to_string(pezzoMosso.Riga()) + ";"
+				+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col);
 			// invio questo messaggio al server per digli quale pezzo ha scelto l'utente dopo la promozione
-			client->Send(messaggio);
+			client.Send(messaggio);
+
+			// mi aspetto dal server come risposta la pedina che l'utente ha promosso
+			string ricevuto = client.RecieveCorrectData();
+			vector<string> splitted = Message::split(ricevuto, ';');
+			// ricevo "colorePezzo_nomePezzoPromosso;rstart;cstart;rend;cend"
+			string nomePezzo = splitted.at(0);
+			pezzoMosso.setNome(nomePezzo + imgExt);
 		}
 	}
 
@@ -1442,19 +1466,31 @@ void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP* client, bool oppMv)
 // metodo per generare il suono in base alla mossa effettuata dal giocatore
 void Chessboard::playSound(bool promoted, Piece eatenPiece)
 {
+	// se ho arroccato
 	if (arroccoTmp)
+	{
 		sndPlaySound(L"sounds/castle.wav", SND_ASYNC);
+	}
+	// se c'è uno scacco
 	else if (ControllaScacco())
 	{
+		// controllo se è matto
 		if (!ScaccoMatto())
 			sndPlaySound(L"sounds/move-check.wav", SND_ASYNC);
 		else
 			sndPlaySound(L"sounds/capture.wav", SND_ASYNC);
 	}
+	// se ho promosso un pezzo
 	else if (promoted)
+	{
 		sndPlaySound(L"sounds/promote.wav", SND_ASYNC);
+	}
+	// controllo se è stato mangiato un pezzo
 	else if (eatenPiece.Exist())
+	{
 		sndPlaySound(L"sounds/capture.wav", SND_ASYNC);
+	}
+	// altrimenti è una mossa normale
 	else
 	{
 		if (pezzoMosso.Is(colori[0]))

@@ -3,6 +3,7 @@
 #include "Piece.h"
 #include "ClientTCP.h"
 #include "drawing.h"
+#include "Message.h"
 
 const int ROW = 8;
 const int COLUMN = 8;
@@ -32,7 +33,7 @@ private:
 	int y;
 	// colori disponibili nel gioco (bianco e nero, che sono riferiti ai nomi delle immagini .bmp)
 	string colori[MAX_COLORI];
-	
+
 	// variabili per la inviare dati al server
 	string lastMove;
 
@@ -54,7 +55,7 @@ public:
 	bool ReSottoScacco(Piece king);
 	bool ControllaScacco();
 	bool ControllaMossa(int _mX, int _mY);
-	void PosizionaPezzo(int mx, int my, ClientTCP* client = nullptr, bool oppMv = false);
+	void PosizionaPezzo(int mx, int my, ClientTCP& client, bool promoted = false, string pieceNameProm = "");
 	void CambiaPedina(int _mX, int _mY, bool _mPressed);
 	bool ArroccoDxVuoto(Piece pMoved);
 	bool ArroccoSxVuoto(Piece pMoved);
