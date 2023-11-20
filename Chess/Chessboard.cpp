@@ -1134,7 +1134,8 @@ bool Chessboard::MateFunction(Piece re)
 					if (!pezzi[i][j].PrimaMossa() && ((parteBassa && i == ROW - 2) || (parteAlta && i == 1)))
 					{
 						// se c'è un pezzo non posso muovere la pedina
-						if (!pezzi[i + (parteBassa ? -2 : 2)][j].Exist())
+						if (!pezzi[i + (parteBassa ? -2 : 2)][j].Exist()
+							&& !pezzi[i + (parteBassa ? -1 : 1)][j].Exist())
 							// ritorna true se spostando il pezzo non c'è più scacco
 							if (SpostaPezzoSM(pezzi[i][j], (i + (parteBassa ? -2 : 2)), j))
 								return false;
