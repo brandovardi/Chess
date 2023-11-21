@@ -55,6 +55,7 @@ public:
 	bool ReSottoScacco(Piece king);
 	bool ControllaScacco();
 	bool ControllaMossa(int _mX, int _mY);
+	void removeEnPassant();
 	void PosizionaPezzo(int mx, int my, ClientTCP& client, bool promoted = false, string pieceNameProm = "");
 	void CambiaPedina(int _mX, int _mY, bool _mPressed);
 	bool ArroccoDxVuoto(Piece pMoved);

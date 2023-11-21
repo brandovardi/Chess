@@ -1323,6 +1323,7 @@ bool Chessboard::ControllaMossa(int mx, int my)
 			if (twoFAenPass) {
 				enPassantTmp = false;
 				twoFAenPass = false;
+				removeEnPassant();
 			}
 			if (enPassantTmp && !twoFAenPass)
 				twoFAenPass = true;
@@ -1351,6 +1352,16 @@ bool Chessboard::ControllaMossa(int mx, int my)
 	}
 	resetPezzo();
 	return false;
+}
+// rimuovo l'en passant per tutti i pedoni che non possono più farlo
+void Chessboard::removeEnPassant()
+{
+	// vado a controllare solamente le righe dove è possibile effettuare l'enpassant
+	int r1 = 3, r2 = 4;
+	for (int i = r1; i <= r2; i++)
+		for (int j = 0; j < COLUMN; j++)
+			if (pezzi[i][j].Is("pawn") && pezzi[i][j].EnPassant())
+				pezzi[i][j].setEnPassant(false);
 }
 // metodo per posizionare il pezzo dopo aver ricevuto conferma dal server
 void Chessboard::PosizionaPezzo(int mx, int my, ClientTCP& client, bool promoted, string pieceNameProm)
