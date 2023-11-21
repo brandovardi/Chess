@@ -1332,9 +1332,9 @@ bool Chessboard::ControllaMossa(int mx, int my)
 			lastMove = pezzi[riga][col].getServerString() + ";" + to_string(pezzoMosso.Riga()) + ";"
 				+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col) + "\t";
 
-			if (!pezzoMosso.Is("king") && ScaccoMatto())
+			if (ScaccoMatto())
 				lastMove.append("Checkmate");
-			else if (!pezzoMosso.Is("king") && Stallo())
+			else if (Stallo())
 				lastMove.append("Stealmate");
 			else if (promosso)
 				lastMove.append("Promoted");
