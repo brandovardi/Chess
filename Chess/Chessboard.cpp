@@ -1262,92 +1262,98 @@ bool Chessboard::ControllaMossa(int mx, int my)
 		// ma il pezzo mosso è dello stesso colore del re sotto scacco allora controllo se la mossa del pezzo
 		// potrebbe salvare il re
 		// infine controllo se la mossa effettuata è valida
-		if ((!ControllaScacco() || (ControllaScacco() && StessoColore(reSottoScacco, pezzoMosso)))
-			&& !ControllaPezzi(riga, col, pezzoMosso))
+		if (!ControllaPezzi(riga, col, pezzoMosso))
 		{
-			// vado a salvarmi il pezzo che è stato eventualmente mangiato
-			Piece pezzoMangiato = pezzi[riga][col];
-			// questa variabile mi serve solamente per riprodurre il suono corretto nel caso di una promozione
-			bool promosso = false;
-			// una volta superato il controllo vado a posizionare il pezzo mosso dove dovrebbe andare
-			// (anche per poter effettuare gli ultimi controlli)
-			pezzi[riga][col] = Piece(pezzoMosso.Nome(), riga, col, pezzoMosso.PrimaMossa(), pezzoMosso.Arrocco(),
-				pezzoMosso.Promuovi(), pezzoMosso.EnPassant());
-			// vado a controllare se il pezzo deve essere promosso, quindi è una pedina
-			if (pezzoMosso.Promuovi())
+			// rimetto il pezzo temporaneamente solamente per verificare una possibile situazione di scacco prima di muovere il pezzo
+			pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzoMosso;
+			if ((!ControllaScacco() || (ControllaScacco() && StessoColore(reSottoScacco, pezzoMosso))))
 			{
-				promosso = true;
-				// metto un ciclo vuoto per dare il tempo all'utente di lasciare il tasto del mouse prima di scegliere
-				while (LeftMousePressed()) {}
-			}
-			// ora vado a controllare se il re è sotto scacco
-			if (ControllaScacco() && StessoColore(pezzoMosso, reSottoScacco))
-			{
-				// quindi controllo se il re ha già arroccato e con la variabile arroccoTmp verifico che
-				// abbia arroccato in questo turno
-				if (pezzoMosso.Is("king") && pezzoMosso.Arrocco() && arroccoTmp)
+				// rimuovo nuovamente il pezzo mosso
+				pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = Piece(pezzoMosso.Riga(), pezzoMosso.Col());
+				// vado a salvarmi il pezzo che è stato eventualmente mangiato
+				Piece pezzoMangiato = pezzi[riga][col];
+				// questa variabile mi serve solamente per riprodurre il suono corretto nel caso di una promozione
+				bool promosso = false;
+				// una volta superato il controllo vado a posizionare il pezzo mosso dove dovrebbe andare
+				// (anche per poter effettuare gli ultimi controlli)
+				pezzi[riga][col] = Piece(pezzoMosso.Nome(), riga, col, pezzoMosso.PrimaMossa(), pezzoMosso.Arrocco(),
+					pezzoMosso.Promuovi(), pezzoMosso.EnPassant());
+				// vado a controllare se il pezzo deve essere promosso, quindi è una pedina
+				if (pezzoMosso.Promuovi())
 				{
-					// rimetto aposto l'arrocco
-					bool bianco = colori[0]._Equal("white_");
-					// controllo se ha arroccato corto
-					if (col > pezzoMosso.Col())
-					{
-						// rimetto il re al suo posto
-						pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
-						// e tolgo da dove l'avevo messo
-						pezzi[riga][col] = Piece(riga, col);
-					}
-					// o se ha arroccato lungo
-					else if (col < pezzoMosso.Col())
-					{
-						// rimetto il re al suo posto
-						pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
-						// e tolgo da dove l'avevo messo
-						pezzi[riga][col] = Piece(riga, col);
-					}
-					pezzoMangiato = Piece();
+					promosso = true;
+					// metto un ciclo vuoto per dare il tempo all'utente di lasciare il tasto del mouse prima di scegliere
+					while (LeftMousePressed()) {}
 				}
-				else {
-					// questo else serve esculsivamente per rimettere a posto la cella sulla quale un pezzo ha provato
-					// a muoversi ma spostandosi avrebbe messo il proprio re sotto scacco quindi siccome prima ho dovuto
-					// piazzare il pezzo mosso nella posizione desiderata ora devo rimetterlo a posto sistemando tutto
-					pezzi[riga][col] = pezzoMangiato;
+				// ora vado a controllare se il re è sotto scacco
+				if (ControllaScacco() && StessoColore(pezzoMosso, reSottoScacco))
+				{
+					// quindi controllo se il re ha già arroccato e con la variabile arroccoTmp verifico che
+					// abbia arroccato in questo turno
+					if (pezzoMosso.Is("king") && pezzoMosso.Arrocco() && arroccoTmp)
+					{
+						// rimetto aposto l'arrocco
+						bool bianco = colori[0]._Equal("white_");
+						// controllo se ha arroccato corto
+						if (col > pezzoMosso.Col())
+						{
+							// rimetto il re al suo posto
+							pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
+							// e tolgo da dove l'avevo messo
+							pezzi[riga][col] = Piece(riga, col);
+						}
+						// o se ha arroccato lungo
+						else if (col < pezzoMosso.Col())
+						{
+							// rimetto il re al suo posto
+							pezzi[pezzoMosso.Riga()][pezzoMosso.Col()] = pezzi[riga][col];
+							// e tolgo da dove l'avevo messo
+							pezzi[riga][col] = Piece(riga, col);
+						}
+						pezzoMangiato = Piece();
+					}
+					else {
+						// questo else serve esculsivamente per rimettere a posto la cella sulla quale un pezzo ha provato
+						// a muoversi ma spostandosi avrebbe messo il proprio re sotto scacco quindi siccome prima ho dovuto
+						// piazzare il pezzo mosso nella posizione desiderata ora devo rimetterlo a posto sistemando tutto
+						pezzi[riga][col] = pezzoMangiato;
+					}
+					pezzoMosso.setArrocco(false);
+					//pezzoMosso.setPrimaMossa(false);
+					resetPezzo();
+					return false;
 				}
-				pezzoMosso.setArrocco(false);
-				//pezzoMosso.setPrimaMossa(false);
-				resetPezzo();
-				return false;
+				// una volta superati tutti i controlli con successo indico che il pezzo ha effettuato la sua prima mossa
+				pezzi[riga][col].setPrimaMossa(true);
+				if (twoFAenPass) {
+					enPassantTmp = false;
+					twoFAenPass = false;
+					removeEnPassant();
+				}
+				if (enPassantTmp && !twoFAenPass)
+					twoFAenPass = true;
+
+				// salvo il pezzo mosso in una stringa
+				lastMove = pezzi[riga][col].getServerString() + ";" + to_string(pezzoMosso.Riga()) + ";"
+					+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col) + "\t";
+
+				if (ScaccoMatto())
+					lastMove.append("Checkmate");
+				else if (Stallo())
+					lastMove.append("Stealmate");
+				else if (promosso)
+					lastMove.append("Promoted");
+
+				// siccome devo lasciare i controlli finali al server metto tutto a posto com'era prima
+				pezzi[savedPieceMoved.Riga()][savedPieceMoved.Col()] = savedPieceMoved;
+				pezzi[riga][col] = pezzoMangiato;
+
+				// poi resetto quello che mi serve
+				// whiteToMove = !whiteToMove;
+				reSottoScacco = Piece();
+				arroccoTmp = false;
+				return true;
 			}
-			// una volta superati tutti i controlli con successo indico che il pezzo ha effettuato la sua prima mossa
-			pezzi[riga][col].setPrimaMossa(true);
-			if (twoFAenPass) {
-				enPassantTmp = false;
-				twoFAenPass = false;
-				removeEnPassant();
-			}
-			if (enPassantTmp && !twoFAenPass)
-				twoFAenPass = true;
-
-			// salvo il pezzo mosso in una stringa
-			lastMove = pezzi[riga][col].getServerString() + ";" + to_string(pezzoMosso.Riga()) + ";"
-				+ to_string(pezzoMosso.Col()) + ";" + to_string(riga) + ";" + to_string(col) + "\t";
-
-			if (ScaccoMatto())
-				lastMove.append("Checkmate");
-			else if (Stallo())
-				lastMove.append("Stealmate");
-			else if (promosso)
-				lastMove.append("Promoted");
-
-			// siccome devo lasciare i controlli finali al server metto tutto a posto com'era prima
-			pezzi[savedPieceMoved.Riga()][savedPieceMoved.Col()] = savedPieceMoved;
-			pezzi[riga][col] = pezzoMangiato;
-
-			// poi resetto quello che mi serve
-			// whiteToMove = !whiteToMove;
-			reSottoScacco = Piece();
-			arroccoTmp = false;
-			return true;
 		}
 	}
 	resetPezzo();
