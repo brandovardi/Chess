@@ -312,7 +312,6 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 1].Exist() && !pezzi[rDest][cDest + 1].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
 							{
-								//Arrocca(rDest, cDest + 1);
 								_castling = true;
 								pezzoMosso.setArrocco(true);
 							}
@@ -320,7 +319,6 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 2].Exist() && !pezzi[rDest][cDest - 2].PrimaMossa()
 								&& ArroccoSxVuoto(pMoved))
 							{
-								//Arrocca(rDest, cDest - 2);
 								_castling = true;
 								pezzoMosso.setArrocco(true);
 							}
@@ -332,7 +330,6 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							if (cDest == (pMoved.Col() + 2) && pezzi[rDest][cDest + 2].Exist() && !pezzi[rDest][cDest + 2].PrimaMossa()
 								&& ArroccoDxVuoto(pMoved))
 							{
-								//Arrocca(rDest, cDest + 2);
 								_castling = true;
 								pezzoMosso.setArrocco(true);
 							}
@@ -340,7 +337,6 @@ bool Chessboard::ControllaPezzi(int rDest, int cDest, Piece& pMoved)
 							else if (cDest == (pMoved.Col() - 2) && pezzi[rDest][cDest - 1].Exist() && !pezzi[rDest][cDest - 1].PrimaMossa()
 								&& ArroccoSxVuoto(pMoved))
 							{
-								//Arrocca(rDest, cDest - 1);
 								_castling = true;
 								pezzoMosso.setArrocco(true);
 							}
