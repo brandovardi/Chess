@@ -1,5 +1,5 @@
 /*
-* fonte per la connessione client-server (UDP):
+* fonte per la connessione client-server (TCP):
 * https://gist.github.com/sunmeat/02b60c8a3eaef3b8a0fb3c249d8686fd
 *
 * fonte per la riproduzione dell'audio:
